@@ -4,11 +4,17 @@ pub mod theme;
 #[cfg(feature = "ui")]
 pub mod ui;
 
+#[cfg(feature = "screens")]
+pub mod screens;
+
 #[cfg(feature = "theme")]
 pub use theme::*;
 
 #[cfg(feature = "ui")]
 pub use ui::*;
+
+#[cfg(feature = "screens")]
+pub use screens::*;
 
 pub mod prelude {
     #[cfg(feature = "theme")]
@@ -16,4 +22,7 @@ pub mod prelude {
 
     #[cfg(feature = "ui")]
     pub use crate::ui::*;
+
+    #[cfg(feature = "screens")]
+    pub use crate::screens::*;
 }
