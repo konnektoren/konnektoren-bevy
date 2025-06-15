@@ -249,6 +249,7 @@ fn check_splash_config(
 }
 
 /// System to load images for splash screens
+#[allow(clippy::type_complexity)]
 fn load_splash_images(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -369,6 +370,7 @@ fn render_splash_ui(
 }
 
 /// Render splash screen content
+#[allow(clippy::too_many_arguments)]
 fn render_splash_content(
     ui: &mut egui::Ui,
     config: &SplashConfig,
@@ -586,11 +588,11 @@ fn render_image_loading(
             .circle_filled(pos, 3.0, theme.primary.linear_multiply(alpha));
     }
 
-    // Show filename
+    // Show filename - Fixed clippy warning by using next_back() instead of last()
     ui.painter().text(
         rect.center() + egui::vec2(0.0, size * 0.35),
         egui::Align2::CENTER_CENTER,
-        &format!("Loading {}", path.split('/').last().unwrap_or(path)),
+        format!("Loading {}", path.split('/').next_back().unwrap_or(path)),
         egui::FontId::proportional(size * 0.08),
         theme.base_content,
     );

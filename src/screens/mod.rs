@@ -1,5 +1,7 @@
+pub mod about;
 pub mod splash;
 
+pub use about::*;
 pub use splash::*;
 
 use bevy::prelude::*;
@@ -9,8 +11,11 @@ pub struct ScreensPlugin;
 
 impl Plugin for ScreensPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(SplashPlugin).add_event::<SplashDismissed>();
+        app.add_plugins(SplashPlugin)
+            .add_plugins(AboutPlugin)
+            .add_event::<SplashDismissed>()
+            .add_event::<AboutDismissed>();
 
-        info!("ScreensPlugin loaded with splash screen support");
+        info!("ScreensPlugin loaded with splash and about screen support");
     }
 }
