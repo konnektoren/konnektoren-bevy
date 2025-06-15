@@ -1,11 +1,19 @@
+[workspace]
+members = [".", "demo"]
+resolver = "3"
+
+[workspace.dependencies]
+bevy = { version = "0.16.1" }
+bevy_egui = "0.34.1"
+
 [package]
 name = "konnektoren-bevy"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.16.1" }
-bevy_egui = "0.34.1"
+bevy = { workspace = true }
+bevy_egui = { workspace = true }
 
 [features]
 default = ["theme", "ui", "screens"]
