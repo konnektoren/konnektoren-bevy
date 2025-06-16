@@ -137,113 +137,83 @@ pub fn spawn_educational_about(commands: &mut Commands) {
 }
 
 pub fn spawn_custom_settings(commands: &mut Commands, responsive: &ResponsiveInfo) {
-    let custom_config = SettingsConfig::new("Custom Settings")
+    let custom_config = SettingsScreenConfig::new("Custom Settings")
         .mobile_layout(responsive.is_mobile())
         .add_section(SettingsSection::audio_section())
         .add_section(
             SettingsSection::new("Demo Settings")
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::selection(
                     "demo_mode",
                     "Demo Mode",
-                    SettingType::ButtonGroup {
-                        options: vec![
-                            "Beginner".to_string(),
-                            "Intermediate".to_string(),
-                            "Advanced".to_string(),
-                        ],
-                        current_index: 1,
-                    },
+                    vec![
+                        "Beginner".to_string(),
+                        "Intermediate".to_string(),
+                        "Advanced".to_string(),
+                    ],
+                    1,
                 ))
-                .add_setting(SettingsItem::new(
-                    "auto_demo",
-                    "Auto Demo",
-                    SettingType::Toggle {
-                        current_value: false,
-                    },
-                ))
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::toggle("auto_demo", "Auto Demo", false))
+                .add_setting(ScreenSettingsItem::slider(
                     "demo_speed",
                     "Demo Speed",
-                    SettingType::Slider {
-                        current_value: 1.0,
-                        min_value: 0.5,
-                        max_value: 2.0,
-                        step: 0.1,
-                        format: "{:.1} x".to_string(),
-                    },
+                    1.0,
+                    0.5,
+                    2.0,
+                    0.1,
                 )),
         )
         .add_section(
             SettingsSection::new("Advanced Options")
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::toggle(
                     "debug_mode",
                     "Debug Mode",
-                    SettingType::Toggle {
-                        current_value: false,
-                    },
+                    false,
                 ))
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::selection(
                     "log_level",
                     "Log Level",
-                    SettingType::ButtonGroup {
-                        options: vec![
-                            "Error".to_string(),
-                            "Warn".to_string(),
-                            "Info".to_string(),
-                            "Debug".to_string(),
-                            "Trace".to_string(),
-                        ],
-                        current_index: 2,
-                    },
+                    vec![
+                        "Error".to_string(),
+                        "Warn".to_string(),
+                        "Info".to_string(),
+                        "Debug".to_string(),
+                        "Trace".to_string(),
+                    ],
+                    2,
                 ))
-                .add_setting(SettingsItem::new(
-                    "max_fps",
-                    "Max FPS",
-                    SettingType::Slider {
-                        current_value: 60.0,
-                        min_value: 30.0,
-                        max_value: 144.0,
-                        step: 1.0,
-                        format: "{:.0} FPS".to_string(),
-                    },
+                .add_setting(ScreenSettingsItem::slider(
+                    "max_fps", "Max FPS", 60.0, 30.0, 144.0, 1.0,
                 )),
         );
 
-    commands.spawn_settings(custom_config);
+    commands.spawn_settings_screen(custom_config);
 }
 
 pub fn spawn_mobile_settings(commands: &mut Commands) {
-    let mobile_config = SettingsConfig::new("Mobile Settings")
+    let mobile_config = SettingsScreenConfig::new("Mobile Settings")
         .mobile_layout(true)
         .add_section(SettingsSection::audio_section())
         .add_section(
             SettingsSection::new("Touch Controls")
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::slider(
                     "touch_sensitivity",
                     "Touch Sensitivity",
-                    SettingType::Slider {
-                        current_value: 1.0,
-                        min_value: 0.5,
-                        max_value: 2.0,
-                        step: 0.1,
-                        format: "{:.1} x".to_string(),
-                    },
+                    1.0,
+                    0.5,
+                    2.0,
+                    0.1,
                 ))
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::toggle(
                     "haptic_feedback",
                     "Haptic Feedback",
-                    SettingType::Toggle {
-                        current_value: true,
-                    },
+                    true,
                 ))
-                .add_setting(SettingsItem::new(
+                .add_setting(ScreenSettingsItem::toggle(
                     "gesture_controls",
                     "Gesture Controls",
-                    SettingType::Toggle {
-                        current_value: true,
-                    },
+                    true,
                 )),
         );
 
-    commands.spawn_settings(mobile_config);
+    commands.spawn_settings_screen(mobile_config);
 }

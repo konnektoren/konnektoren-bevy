@@ -12,9 +12,9 @@ pub fn render_side_panel(
     commands: &mut Commands,
     active_splash_query: &Query<Entity, With<ActiveSplash>>,
     active_about_query: &Query<Entity, With<ActiveAbout>>,
-    active_settings_query: &Query<Entity, With<ActiveSettings>>,
+    active_settings_query: &Query<Entity, With<ActiveSettingsScreen>>, // Fixed
     existing_about_configs: &Query<Entity, With<AboutConfig>>,
-    existing_settings_configs: &Query<Entity, With<SettingsConfig>>,
+    existing_settings_configs: &Query<Entity, With<SettingsScreenConfig>>,
 ) {
     egui::SidePanel::left("demo_panel")
         .resizable(true)
@@ -148,32 +148,32 @@ fn render_settings_section(
     ui: &mut egui::Ui,
     commands: &mut Commands,
     responsive: &ResponsiveInfo,
-    existing_settings_configs: &Query<Entity, With<SettingsConfig>>,
+    existing_settings_configs: &Query<Entity, With<SettingsScreenConfig>>,
 ) {
     ui.heading("Settings Screen Examples");
 
     if ui.button("Simple Settings").clicked() {
         info!("Spawning simple settings screen");
         cleanup_existing_settings_screens(commands, existing_settings_configs);
-        commands.spawn_simple_settings("Basic Settings");
+        commands.spawn_simple_settings_screen("Basic Settings");
     }
 
     if ui.button("Game Settings").clicked() {
         info!("Spawning game settings screen");
         cleanup_existing_settings_screens(commands, existing_settings_configs);
-        commands.spawn_settings(SettingsConfig::game_settings("Game Settings"));
+        commands.spawn_settings_screen(SettingsScreenConfig::game_settings("Game Settings"));
     }
 
     if ui.button("Educational Settings").clicked() {
         info!("Spawning educational settings screen");
         cleanup_existing_settings_screens(commands, existing_settings_configs);
-        commands.spawn_settings(SettingsConfig::educational_game("Learning Settings"));
+        commands.spawn_settings_screen(SettingsScreenConfig::educational_game("Learning Settings"));
     }
 
     if ui.button("Audio Only Settings").clicked() {
         info!("Spawning audio-only settings screen");
         cleanup_existing_settings_screens(commands, existing_settings_configs);
-        commands.spawn_settings(SettingsConfig::audio_only("Audio Settings"));
+        commands.spawn_settings_screen(SettingsScreenConfig::audio_only("Audio Settings"));
     }
 
     if ui.button("Custom Settings").clicked() {
@@ -194,7 +194,7 @@ fn render_status_section(
     responsive: &ResponsiveInfo,
     active_splash_query: &Query<Entity, With<ActiveSplash>>,
     active_about_query: &Query<Entity, With<ActiveAbout>>,
-    active_settings_query: &Query<Entity, With<ActiveSettings>>,
+    active_settings_query: &Query<Entity, With<ActiveSettingsScreen>>, // Fixed
 ) {
     ui.heading("System Status");
 
@@ -231,7 +231,7 @@ fn cleanup_existing_about_screens(
 // Helper function to clean up existing settings screens
 fn cleanup_existing_settings_screens(
     commands: &mut Commands,
-    existing_settings_configs: &Query<Entity, With<SettingsConfig>>,
+    existing_settings_configs: &Query<Entity, With<SettingsScreenConfig>>,
 ) {
     for entity in existing_settings_configs.iter() {
         info!("Cleaning up existing settings screen: {:?}", entity);

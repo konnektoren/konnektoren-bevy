@@ -15,10 +15,9 @@ impl Plugin for ScreensPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(SplashPlugin)
             .add_plugins(AboutPlugin)
-            .add_plugins(SettingsPlugin)
+            .add_plugins(SettingsScreenPlugin)
             .add_event::<SplashDismissed>()
-            .add_event::<AboutDismissed>()
-            .add_event::<SettingsEvent>();
+            .add_event::<AboutDismissed>();
 
         info!("ScreensPlugin loaded with splash, about, and settings screen support");
     }

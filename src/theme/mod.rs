@@ -1,9 +1,9 @@
 pub mod colors;
-pub mod plugin;
+mod plugin;
 pub mod resource;
 
 pub use colors::*;
-pub use plugin::*;
+use plugin::*;
 pub use resource::*;
 
 use bevy::prelude::*;

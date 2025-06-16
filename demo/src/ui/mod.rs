@@ -17,9 +17,9 @@ pub fn demo_ui(
     mut commands: Commands,
     active_splash_query: Query<Entity, With<ActiveSplash>>,
     active_about_query: Query<Entity, With<ActiveAbout>>,
-    active_settings_query: Query<Entity, With<ActiveSettings>>,
+    active_settings_query: Query<Entity, With<ActiveSettingsScreen>>, // Fixed: ActiveSettingsScreen
     existing_about_configs: Query<Entity, With<AboutConfig>>,
-    existing_settings_configs: Query<Entity, With<SettingsConfig>>,
+    existing_settings_configs: Query<Entity, With<SettingsScreenConfig>>,
 ) {
     if let Ok(demo_state) = demo_query.single() {
         // Don't show UI if any overlay is active

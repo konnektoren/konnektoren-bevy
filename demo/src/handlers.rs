@@ -1,6 +1,7 @@
 use crate::demo::{DemoState, DemoType};
 use bevy::prelude::*;
 use konnektoren_bevy::prelude::*;
+use konnektoren_bevy::SettingValue;
 
 pub fn handle_splash_dismissed(
     mut splash_events: EventReader<SplashDismissed>,
@@ -21,16 +22,17 @@ pub fn handle_about_dismissed(mut about_events: EventReader<AboutDismissed>) {
     }
 }
 
-pub fn handle_settings_events(mut settings_events: EventReader<SettingsEvent>) {
+pub fn handle_settings_events(mut settings_events: EventReader<SettingsScreenEvent>) {
     for event in settings_events.read() {
         match event {
-            SettingsEvent::ValueChanged {
+            SettingsScreenEvent::ValueChanged {
                 entity: _,
                 setting_id,
                 value,
             } => {
                 info!("Setting '{}' changed to {:?}", setting_id, value);
                 // Here you would typically update your application's settings
+
                 match (setting_id.as_str(), value) {
                     ("master_volume", SettingValue::Float(volume)) => {
                         info!("Master volume changed to: {:.1}", volume);
@@ -38,16 +40,10 @@ pub fn handle_settings_events(mut settings_events: EventReader<SettingsEvent>) {
                     ("audio_enabled", SettingValue::Bool(enabled)) => {
                         info!("Audio enabled changed to: {}", enabled);
                     }
-                    ("difficulty", SettingValue::Int(index)) => {
+                    ("difficulty", SettingValue::Selection(index)) => {
                         let difficulties = ["Easy", "Normal", "Hard", "Expert"];
-                        if let Some(difficulty) = difficulties.get(*index as usize) {
+                        if let Some(difficulty) = difficulties.get(*index) {
                             info!("Difficulty changed to: {}", difficulty);
-                        }
-                    }
-                    ("demo_mode", SettingValue::Int(index)) => {
-                        let modes = ["Beginner", "Intermediate", "Advanced"];
-                        if let Some(mode) = modes.get(*index as usize) {
-                            info!("Demo mode changed to: {}", mode);
                         }
                     }
                     _ => {
@@ -55,10 +51,10 @@ pub fn handle_settings_events(mut settings_events: EventReader<SettingsEvent>) {
                     }
                 }
             }
-            SettingsEvent::Dismissed { entity } => {
+            SettingsScreenEvent::Dismissed { entity } => {
                 info!("Settings dismissed for entity {:?}", entity);
             }
-            SettingsEvent::Navigate { direction } => {
+            SettingsScreenEvent::Navigate { direction } => {
                 info!("Settings navigation: {:?}", direction);
             }
         }

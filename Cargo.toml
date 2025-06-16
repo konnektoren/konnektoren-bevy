@@ -17,7 +17,8 @@ bevy_egui = { workspace = true }
 chrono = "0.4.41"
 
 [features]
-default = ["theme", "ui", "screens"]
+default = ["theme", "ui", "screens", "settings"]
 theme = []
 ui = ["theme"]
 screens = ["theme", "ui"]
+settings = []
