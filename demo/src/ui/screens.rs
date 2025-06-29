@@ -118,6 +118,20 @@ pub fn spawn_custom_about(commands: &mut Commands) {
     commands.spawn_about(about_config);
 }
 
+pub fn spawn_demo_credits(commands: &mut Commands) {
+    commands.spawn_credits(
+        CreditsConfig::new("Konnektoren Bevy Demo")
+            .with_subtitle("Demo Credits")
+            .add_team_member("Jane Example", "Demo Developer")
+            .add_team_member("John Example", "UI Design")
+            .add_asset("Demo Logo", "CC0 Example Asset")
+            .add_special_thanks("You!", "For trying the demo")
+            .add_technology("Bevy", "Game engine")
+            .add_technology("egui", "Immediate mode GUI")
+            .with_dismiss_button_text("← Back"),
+    );
+}
+
 pub fn spawn_educational_about(commands: &mut Commands) {
     let game_config = AboutConfig::for_game("German Grammar Master")
         .with_subtitle("Interactive Language Learning")

@@ -1,8 +1,10 @@
 pub mod about;
+pub mod credits;
 pub mod settings;
 pub mod splash;
 
 pub use about::*;
+pub use credits::*;
 pub use settings::*;
 pub use splash::*;
 
@@ -15,8 +17,10 @@ impl Plugin for ScreensPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(SplashPlugin)
             .add_plugins(AboutPlugin)
+            .add_plugins(CreditsPlugin)
             .add_plugins(SettingsScreenPlugin)
             .add_event::<SplashDismissed>()
+            .add_event::<CreditsDismissed>()
             .add_event::<AboutDismissed>();
 
         info!("ScreensPlugin loaded with splash, about, and settings screen support");

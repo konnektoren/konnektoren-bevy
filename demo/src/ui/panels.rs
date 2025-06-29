@@ -12,9 +12,10 @@ pub fn render_side_panel(
     commands: &mut Commands,
     active_splash_query: &Query<Entity, With<ActiveSplash>>,
     active_about_query: &Query<Entity, With<ActiveAbout>>,
-    active_settings_query: &Query<Entity, With<ActiveSettingsScreen>>, // Fixed
+    active_settings_query: &Query<Entity, With<ActiveSettingsScreen>>,
     existing_about_configs: &Query<Entity, With<AboutConfig>>,
     existing_settings_configs: &Query<Entity, With<SettingsScreenConfig>>,
+    existing_credits_configs: &Query<Entity, With<CreditsConfig>>,
 ) {
     egui::SidePanel::left("demo_panel")
         .resizable(true)
@@ -28,6 +29,8 @@ pub fn render_side_panel(
             render_about_section(ui, commands, existing_about_configs);
             ui.separator();
             render_settings_section(ui, commands, responsive, existing_settings_configs);
+            ui.separator();
+            render_credits_section(ui, commands, existing_credits_configs);
             ui.separator();
             render_status_section(
                 ui,
@@ -48,6 +51,23 @@ pub fn render_main_panel(
     egui::CentralPanel::default().show(contexts.ctx_mut(), |ui| {
         show_complete_demo(ui, theme, responsive)
     });
+}
+
+fn render_credits_section(
+    ui: &mut egui::Ui,
+    commands: &mut Commands,
+    existing_credits_configs: &Query<Entity, With<CreditsConfig>>,
+) {
+    ui.heading("Credits Screen Example");
+
+    if ui.button("Show Credits").clicked() {
+        info!("Spawning credits screen");
+        // Clean up any existing credits screens
+        for entity in existing_credits_configs.iter() {
+            commands.entity(entity).despawn();
+        }
+        super::screens::spawn_demo_credits(commands);
+    }
 }
 
 fn render_splash_section(ui: &mut egui::Ui, commands: &mut Commands) {
