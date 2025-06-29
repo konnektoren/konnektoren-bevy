@@ -9,5 +9,6 @@ path = "src/main.rs"
 
 [dependencies]
 konnektoren-bevy = { path = ".." }
-bevy = { version = "0.16.1", features = ["dynamic_linking"] }
-bevy_egui = "0.34.1"
+bevy = { workspace = true }
+bevy_egui = { workspace = true }
+wasm-bindgen = { workspace = true }

@@ -7,8 +7,8 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_egui::{
-    egui::{self, Widget},
-    EguiContexts,
+    egui::{self, Color32, Widget},
+    EguiContextPass, EguiContexts,
 };
 use chrono::Utc;
 
@@ -19,7 +19,7 @@ impl Plugin for AboutPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AboutDismissed>()
             .add_systems(Update, (check_about_config, handle_about_completion))
-            .add_systems(bevy_egui::EguiContextPass, render_about_ui);
+            .add_systems(EguiContextPass, render_about_ui);
     }
 }
 
@@ -41,7 +41,7 @@ pub struct AboutConfig {
     /// List of technologies used
     pub technologies: Vec<(String, String)>,
     /// Beta/status message (optional)
-    pub status_message: Option<(String, egui::Color32)>, // (message, color)
+    pub status_message: Option<(String, Color32)>, // (message, color)
     /// Website links
     pub websites: Vec<WebsiteLink>,
     /// Copyright holder name

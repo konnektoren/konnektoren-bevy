@@ -1,0 +1,9 @@
+[build]
+release = true
+
+[serve]
+port = 8080
+open = true
+
+[watch]
+paths = ["src"]
