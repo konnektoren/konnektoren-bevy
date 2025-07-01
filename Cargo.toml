@@ -19,8 +19,9 @@ chrono = "0.4.41"
 wasm-bindgen = { workspace = true }
 
 [features]
-default = ["theme", "ui", "screens", "settings"]
+default = ["theme", "ui", "screens", "settings", "input"]
 theme = []
 ui = ["theme"]
 screens = ["theme", "ui"]
 settings = []
+input = []

@@ -1,3 +1,6 @@
+#[cfg(feature = "input")]
+pub mod input;
+
 #[cfg(feature = "theme")]
 pub mod theme;
 
@@ -22,6 +25,9 @@ pub use settings::*;
 #[cfg(feature = "screens")]
 pub use screens::*;
 
+#[cfg(feature = "input")]
+pub use input::*;
+
 pub mod prelude {
     #[cfg(feature = "theme")]
     pub use crate::theme::*;
@@ -34,4 +40,7 @@ pub mod prelude {
 
     #[cfg(feature = "screens")]
     pub use crate::screens::*;
+
+    #[cfg(feature = "input")]
+    pub use crate::input::*;
 }
