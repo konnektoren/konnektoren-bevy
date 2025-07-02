@@ -287,6 +287,16 @@ impl ScreenSettingsItem {
             SettingValue::String(current_text),
         )
     }
+
+    /// Create a custom setting type - ADD THIS METHOD
+    pub fn custom(
+        id: impl Into<String>,
+        label: impl Into<String>,
+        current_value: SettingValue,
+        setting_type: SettingType,
+    ) -> Self {
+        Self::new(id, label, setting_type, current_value)
+    }
 }
 
 /// Events for settings screen interactions
@@ -375,6 +385,28 @@ impl SettingsSection {
             ))
     }
 
+    /// ADD INPUT SECTION HERE
+    #[cfg(feature = "input")]
+    pub fn input_section() -> Self {
+        Self::new("Input Settings").add_setting(ScreenSettingsItem::custom(
+            "configure_players",
+            "Configure Players",
+            #[cfg(feature = "settings")]
+            SettingValue::String("Configure".to_string()),
+            #[cfg(not(feature = "settings"))]
+            ScreenSettingValue::String("Configure".to_string()),
+            #[cfg(feature = "settings")]
+            SettingType::Custom {
+                validator: |_| true,
+                display_fn: |_| "Configure Input Devices →".to_string(),
+            },
+            #[cfg(not(feature = "settings"))]
+            ScreenOnlySettingType::Custom {
+                display_fn: |_| "Configure Input Devices →".to_string(),
+            },
+        ))
+    }
+
     #[cfg(feature = "settings")]
     pub fn graphics_section() -> Self {
         Self::new("Graphics Settings")
@@ -427,6 +459,16 @@ impl SettingsSection {
 
 // Pre-built configurations
 impl SettingsScreenConfig {
+    /// Create a complete game settings configuration with common sections
+    #[cfg(all(feature = "settings", feature = "input"))]
+    pub fn game_settings_with_input(title: impl Into<String>) -> Self {
+        Self::new(title)
+            .add_section(SettingsSection::audio_section())
+            .add_section(SettingsSection::graphics_section())
+            .add_section(SettingsSection::input_section())
+            .add_section(SettingsSection::gameplay_section())
+    }
+
     /// Create a complete game settings configuration with common sections
     #[cfg(feature = "settings")]
     pub fn game_settings(title: impl Into<String>) -> Self {

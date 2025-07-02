@@ -35,6 +35,7 @@ fn main() {
         .add_plugins(KonnektorenThemePlugin)
         .add_plugins(UIPlugin)
         .add_plugins(ScreensPlugin)
+        .add_plugins(InputPlugin)
         .add_systems(Startup, setup_demo)
         .add_systems(
             Update,

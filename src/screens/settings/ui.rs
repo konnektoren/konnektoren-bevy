@@ -1,4 +1,5 @@
 use super::config::*;
+use super::input_configuration::{ActiveInputConfiguration, InputConfigurationEvent}; // Add this import
 use crate::{
     theme::KonnektorenTheme,
     ui::{
@@ -640,6 +641,29 @@ fn render_setting_control(
                     }
                 }
             }
+            ScreenOnlySettingType::Custom { display_fn } => {
+                let display_text = display_fn(&setting.current_value);
+
+                if setting.id == "configure_players" {
+                    let button = ThemedButton::new(&display_text, theme).responsive(responsive);
+
+                    if ui.add(button).clicked() {
+                        settings_events.write(SettingsScreenEvent::ValueChanged {
+                            entity,
+                            setting_id: setting.id.clone(),
+                            value: setting.current_value.clone(),
+                        });
+                    }
+                } else {
+                    ResponsiveText::new(
+                        &display_text,
+                        ResponsiveFontSize::Medium,
+                        theme.base_content,
+                    )
+                    .responsive(responsive)
+                    .ui(ui);
+                }
+            }
             _ => {
                 ui.label("Setting type not implemented for screen-only mode");
             }
@@ -651,6 +675,7 @@ fn render_setting_control(
 pub fn handle_settings_screen_events(
     mut commands: Commands,
     mut settings_events: EventReader<SettingsScreenEvent>,
+    mut input_config_events: EventWriter<InputConfigurationEvent>,
 ) {
     for event in settings_events.read() {
         match event {
@@ -664,11 +689,22 @@ pub fn handle_settings_screen_events(
                 value,
             } => {
                 info!("Setting '{}' changed to {:?}", setting_id, value);
-                // Applications can listen to these events to update their settings
+
+                // Handle input configuration button
+                if setting_id == "configure_players" {
+                    input_config_events.write(InputConfigurationEvent::Open);
+                    // Spawn the input configuration screen directly
+                    commands.spawn((
+                        Name::new("Input Configuration Screen"),
+                        ActiveInputConfiguration {
+                            max_players: 4,
+                            current_players: 4,
+                        },
+                    ));
+                }
             }
             SettingsScreenEvent::Navigate { direction } => {
                 info!("Navigation event: {:?}", direction);
-                // Handle navigation if needed
             }
         }
     }

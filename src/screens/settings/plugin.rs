@@ -13,11 +13,13 @@ impl Plugin for SettingsScreenPlugin {
                 (
                     check_settings_screen_config,
                     handle_settings_screen_events,
-                    update_settings_screen_values, // Added this system
+                    update_settings_screen_values,
                     cleanup_component_settings,
                 ),
             )
-            .add_systems(bevy_egui::EguiContextPass, render_settings_screen_ui);
+            .add_systems(bevy_egui::EguiContextPass, render_settings_screen_ui)
+            // Add input configuration plugin
+            .add_plugins(InputConfigurationPlugin);
 
         // Add component-based settings systems if settings feature is enabled
         #[cfg(feature = "settings")]
@@ -41,6 +43,9 @@ pub trait SettingsScreenExt {
 
     /// Spawn a component-based settings screen that uses Setting components
     fn spawn_component_settings_screen(&mut self, title: impl Into<String>) -> Entity;
+
+    /// Spawn input configuration screen
+    fn spawn_input_configuration(&mut self, max_players: u32) -> Entity;
 }
 
 impl SettingsScreenExt for Commands<'_, '_> {
@@ -62,6 +67,17 @@ impl SettingsScreenExt for Commands<'_, '_> {
                 allow_dismissal: true,
                 back_button_text: "Back".to_string(),
                 navigation_state: ComponentSettingsNavigationState::default(),
+            },
+        ))
+        .id()
+    }
+
+    fn spawn_input_configuration(&mut self, max_players: u32) -> Entity {
+        self.spawn((
+            Name::new("Input Configuration Screen"),
+            ActiveInputConfiguration {
+                max_players,
+                current_players: max_players.min(4), // Default to 4 players max
             },
         ))
         .id()
