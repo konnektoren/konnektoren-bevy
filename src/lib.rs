@@ -13,34 +13,19 @@ pub mod screens;
 #[cfg(feature = "settings")]
 pub mod settings;
 
-#[cfg(feature = "theme")]
-pub use theme::*;
-
-#[cfg(feature = "ui")]
-pub use ui::*;
-
-#[cfg(feature = "settings")]
-pub use settings::*;
-
-#[cfg(feature = "screens")]
-pub use screens::*;
-
-#[cfg(feature = "input")]
-pub use input::*;
-
 pub mod prelude {
     #[cfg(feature = "theme")]
-    pub use crate::theme::*;
+    pub use crate::theme::{KonnektorenThemePlugin, *};
 
     #[cfg(feature = "ui")]
-    pub use crate::ui::*;
+    pub use crate::ui::{UIPlugin, *};
 
     #[cfg(feature = "settings")]
-    pub use crate::settings::*;
+    pub use crate::settings::{builders::*, components::*, systems::*, SettingsPlugin};
 
     #[cfg(feature = "screens")]
-    pub use crate::screens::*;
+    pub use crate::screens::{about::*, credits::*, settings::*, splash::*, ScreensPlugin};
 
     #[cfg(feature = "input")]
-    pub use crate::input::*;
+    pub use crate::input::{components::*, device::*, plugin::*, systems::*, InputPlugin};
 }
