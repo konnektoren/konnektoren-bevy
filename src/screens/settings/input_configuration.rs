@@ -126,6 +126,7 @@ pub fn handle_input_configuration_events(
 }
 
 /// System to render input configuration UI
+#[allow(clippy::too_many_arguments)]
 pub fn render_input_configuration_ui(
     mut contexts: EguiContexts,
     theme: Res<KonnektorenTheme>,
@@ -535,6 +536,7 @@ fn render_player_configuration_grid(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_player_panel(
     ui: &mut egui::Ui,
     player_id: u32,

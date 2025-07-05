@@ -154,7 +154,7 @@ pub fn spawn_custom_settings(commands: &mut Commands, responsive: &ResponsiveInf
     let custom_config = SettingsScreenConfig::new("Custom Settings")
         .mobile_layout(responsive.is_mobile())
         .add_section(SettingsSection::audio_section())
-        .add_section(SettingsSection::input_section()) // Add this line
+        .add_section(SettingsSection::input_section())
         .add_section(
             SettingsSection::new("Demo Settings")
                 .add_setting(ScreenSettingsItem::selection(

@@ -1,7 +1,7 @@
 use crate::demo::{DemoState, DemoType};
 use bevy::prelude::*;
+use konnektoren_bevy::prelude::SettingValue;
 use konnektoren_bevy::prelude::*;
-use konnektoren_bevy::SettingValue;
 
 pub fn handle_splash_dismissed(
     mut splash_events: EventReader<SplashDismissed>,

@@ -385,7 +385,6 @@ impl SettingsSection {
             ))
     }
 
-    /// ADD INPUT SECTION HERE
     #[cfg(feature = "input")]
     pub fn input_section() -> Self {
         Self::new("Input Settings").add_setting(ScreenSettingsItem::custom(
