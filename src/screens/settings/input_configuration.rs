@@ -480,25 +480,11 @@ fn render_player_configuration_grid(
     let mut current_player = 0;
 
     while current_player < config.current_players {
-        if responsive.is_mobile() {
-            // Mobile: one column
-            ui.push_id(format!("player_panel_mobile_{}", current_player), |ui| {
-                render_player_panel(
-                    ui,
-                    current_player,
-                    panel_width,
-                    theme,
-                    responsive,
-                    assignment,
-                    available_devices,
-                    config_events,
-                );
-            });
-            current_player += 1;
-        } else {
-            // Desktop: two columns
-            ui.horizontal(|ui| {
-                ui.push_id(format!("player_panel_left_{}", current_player), |ui| {
+        // Add unique ID salt for each row of players
+        ui.push_id(format!("player_row_{}", current_player / 2), |ui| {
+            if responsive.is_mobile() {
+                // Mobile: one column
+                ui.push_id(format!("player_panel_mobile_{}", current_player), |ui| {
                     render_player_panel(
                         ui,
                         current_player,
@@ -510,13 +496,14 @@ fn render_player_configuration_grid(
                         config_events,
                     );
                 });
-
-                if current_player + 1 < config.current_players {
-                    ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
-                    ui.push_id(format!("player_panel_right_{}", current_player + 1), |ui| {
+                current_player += 1;
+            } else {
+                // Desktop: two columns
+                ui.horizontal(|ui| {
+                    ui.push_id(format!("player_panel_left_{}", current_player), |ui| {
                         render_player_panel(
                             ui,
-                            current_player + 1,
+                            current_player,
                             panel_width,
                             theme,
                             responsive,
@@ -525,12 +512,28 @@ fn render_player_configuration_grid(
                             config_events,
                         );
                     });
-                    current_player += 2;
-                } else {
-                    current_player += 1;
-                }
-            });
-        }
+
+                    if current_player + 1 < config.current_players {
+                        ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
+                        ui.push_id(format!("player_panel_right_{}", current_player + 1), |ui| {
+                            render_player_panel(
+                                ui,
+                                current_player + 1,
+                                panel_width,
+                                theme,
+                                responsive,
+                                assignment,
+                                available_devices,
+                                config_events,
+                            );
+                        });
+                        current_player += 2;
+                    } else {
+                        current_player += 1;
+                    }
+                });
+            }
+        });
 
         ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
     }
@@ -557,83 +560,138 @@ fn render_player_panel(
         ..Default::default()
     };
 
-    frame.show(ui, |ui| {
-        ui.set_min_width(width);
+    // Use player-specific ID for the entire panel
+    ui.push_id(format!("player_panel_content_{}", player_id), |ui| {
+        frame.show(ui, |ui| {
+            ui.set_min_width(width);
 
-        ui.vertical(|ui| {
-            // Player header
-            ResponsiveText::new(
-                &format!("Player {}", player_id + 1),
-                ResponsiveFontSize::Large,
-                theme.primary,
-            )
-            .responsive(responsive)
-            .strong()
-            .ui(ui);
-
-            ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
-
-            // Current device display with description
-            let (device_text, device_desc) = if let Some(device) = current_device {
-                (device.name(), device.description())
-            } else {
-                (
-                    "No device assigned".to_string(),
-                    "Select a device below".to_string(),
+            ui.vertical(|ui| {
+                // Player header
+                ResponsiveText::new(
+                    &format!("Player {}", player_id + 1),
+                    ResponsiveFontSize::Large,
+                    theme.primary,
                 )
-            };
+                .responsive(responsive)
+                .strong()
+                .ui(ui);
 
-            let device_color = if current_device.is_some() {
-                theme.success
-            } else {
-                theme.error
-            };
+                ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
 
-            ResponsiveText::new(
-                &format!("Current: {}", device_text),
-                ResponsiveFontSize::Medium,
-                device_color,
-            )
-            .responsive(responsive)
-            .ui(ui);
+                // Current device display with unique ID
+                ui.push_id(format!("current_device_display_{}", player_id), |ui| {
+                    let (device_text, device_desc) = if let Some(device) = current_device {
+                        (device.name(), device.description())
+                    } else {
+                        (
+                            "No device assigned".to_string(),
+                            "Select a device below".to_string(),
+                        )
+                    };
 
-            if current_device.is_some() {
-                ResponsiveText::new(&device_desc, ResponsiveFontSize::Small, theme.base_content)
+                    let device_color = if current_device.is_some() {
+                        theme.success
+                    } else {
+                        theme.error
+                    };
+
+                    ResponsiveText::new(
+                        &format!("Current: {}", device_text),
+                        ResponsiveFontSize::Medium,
+                        device_color,
+                    )
                     .responsive(responsive)
                     .ui(ui);
-            }
 
-            ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
+                    if current_device.is_some() {
+                        ResponsiveText::new(
+                            &device_desc,
+                            ResponsiveFontSize::Small,
+                            theme.base_content,
+                        )
+                        .responsive(responsive)
+                        .ui(ui);
+                    }
+                });
 
-            // Device selection buttons grouped by category
-            ResponsiveText::new(
-                "Available Devices:",
-                ResponsiveFontSize::Medium,
-                theme.base_content,
-            )
-            .responsive(responsive)
-            .ui(ui);
+                ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
 
-            ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
+                // Device selection section with unique ID
+                ui.push_id(format!("device_selection_{}", player_id), |ui| {
+                    ResponsiveText::new(
+                        "Available Devices:",
+                        ResponsiveFontSize::Medium,
+                        theme.base_content,
+                    )
+                    .responsive(responsive)
+                    .ui(ui);
 
-            let devices = available_devices.get_available_devices();
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
 
-            // Group devices by category for organized display
-            let mut categories = std::collections::HashMap::new();
-            for (index, device) in devices.iter().enumerate() {
-                let category = device.category();
-                categories
-                    .entry(category)
-                    .or_insert_with(Vec::new)
-                    .push((index, device));
-            }
+                    render_device_categories_for_player(
+                        ui,
+                        player_id,
+                        width,
+                        theme,
+                        responsive,
+                        assignment,
+                        available_devices,
+                        config_events,
+                    );
+                });
 
-            // Sort categories by their display order
-            let mut sorted_categories: Vec<_> = categories.into_iter().collect();
-            sorted_categories.sort_by_key(|(category, _)| category.order());
+                // Unassign button with unique ID
+                if current_device.is_some() {
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
 
-            // Render each category
-            for (category, devices_in_category) in sorted_categories {
+                    ui.push_id(format!("unassign_section_{}", player_id), |ui| {
+                        let unassign_button = ThemedButton::new("Unassign Device", theme)
+                            .responsive(responsive)
+                            .width(width - 40.0)
+                            .with_style(|btn| btn.fill(theme.accent));
+
+                        if ui.add(unassign_button).clicked() {
+                            config_events
+                                .write(InputConfigurationEvent::DeviceUnassigned { player_id });
+                        }
+                    });
+                }
+            });
+        });
+    });
+}
+
+fn render_device_categories_for_player(
+    ui: &mut egui::Ui,
+    player_id: u32,
+    width: f32,
+    theme: &KonnektorenTheme,
+    responsive: &ResponsiveInfo,
+    assignment: &InputDeviceAssignment,
+    available_devices: &AvailableInputDevices,
+    config_events: &mut EventWriter<InputConfigurationEvent>,
+) {
+    let devices = available_devices.get_available_devices();
+
+    // Group devices by category for organized display
+    let mut categories = std::collections::HashMap::new();
+    for (index, device) in devices.iter().enumerate() {
+        let category = device.category();
+        categories
+            .entry(category)
+            .or_insert_with(Vec::new)
+            .push((index, device));
+    }
+
+    // Sort categories by their display order
+    let mut sorted_categories: Vec<_> = categories.into_iter().collect();
+    sorted_categories.sort_by_key(|(category, _)| category.order());
+
+    // Render each category with unique IDs
+    for (category, devices_in_category) in sorted_categories {
+        ui.push_id(
+            format!("category_{}_{}", category.name(), player_id),
+            |ui| {
                 // Category header
                 ResponsiveText::new(
                     &format!("{} {}", category.icon(), category.name()),
@@ -645,62 +703,56 @@ fn render_player_panel(
 
                 ui.add_space(responsive.spacing(ResponsiveSpacing::XSmall));
 
-                // Devices in this category
-                for (device_index, device) in devices_in_category {
-                    let is_selected = current_device == Some(device);
-                    let is_available = device.is_available(available_devices);
-                    let is_used_by_other = assignment.is_device_assigned(device)
-                        && assignment.get_player_for_device(device) != Some(player_id);
+                // Devices in this category with unique IDs
+                ui.push_id(
+                    format!("devices_in_category_{}_{}", category.name(), player_id),
+                    |ui| {
+                        for (device_index, device) in devices_in_category {
+                            let is_selected =
+                                assignment.get_device_for_player(player_id) == Some(device);
+                            let is_available = device.is_available(available_devices);
+                            let is_used_by_other = assignment.is_device_assigned(device)
+                                && assignment.get_player_for_device(device) != Some(player_id);
 
-                    let device_name = device.name();
-                    let mut button = ThemedButton::new(&device_name, theme)
-                        .responsive(responsive)
-                        .width(width - 40.0);
+                            let device_name = device.name();
+                            let mut button = ThemedButton::new(&device_name, theme)
+                                .responsive(responsive)
+                                .width(width - 40.0);
 
-                    // Style the button based on state
-                    if is_selected {
-                        button = button.with_style(|btn| btn.fill(theme.success));
-                    } else if !is_available || is_used_by_other {
-                        button = button.enabled(false).opacity(0.5);
-                    }
-
-                    // Use push_id for unique device button IDs
-                    ui.push_id(
-                        format!("device_button_p{}_d{}", player_id, device_index),
-                        |ui| {
-                            if ui.add(button).clicked() && is_available && !is_used_by_other {
-                                config_events.write(InputConfigurationEvent::DeviceAssigned {
-                                    player_id,
-                                    device: device.clone(),
-                                });
+                            // Style the button based on state
+                            if is_selected {
+                                button = button.with_style(|btn| btn.fill(theme.success));
+                            } else if !is_available || is_used_by_other {
+                                button = button.enabled(false).opacity(0.5);
                             }
-                        },
-                    );
 
-                    ui.add_space(responsive.spacing(ResponsiveSpacing::XSmall));
-                }
+                            // Use comprehensive unique ID for each device button
+                            let button_id = format!(
+                                "device_btn_p{}_cat{}_dev{}_idx{}",
+                                player_id,
+                                category.name(),
+                                device_index,
+                                device.name().replace(' ', "_")
+                            );
+
+                            ui.push_id(button_id, |ui| {
+                                if ui.add(button).clicked() && is_available && !is_used_by_other {
+                                    config_events.write(InputConfigurationEvent::DeviceAssigned {
+                                        player_id,
+                                        device: device.clone(),
+                                    });
+                                }
+                            });
+
+                            ui.add_space(responsive.spacing(ResponsiveSpacing::XSmall));
+                        }
+                    },
+                );
 
                 ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
-            }
-
-            // Unassign button
-            if current_device.is_some() {
-                ui.add_space(responsive.spacing(ResponsiveSpacing::Small));
-
-                ui.push_id(format!("unassign_button_p{}", player_id), |ui| {
-                    let unassign_button = ThemedButton::new("Unassign Device", theme)
-                        .responsive(responsive)
-                        .width(width - 40.0)
-                        .with_style(|btn| btn.fill(theme.accent));
-
-                    if ui.add(unassign_button).clicked() {
-                        config_events
-                            .write(InputConfigurationEvent::DeviceUnassigned { player_id });
-                    }
-                });
-            }
-        });
-    });
+            },
+        );
+    }
 }
 
 /// System to cleanup input configuration
