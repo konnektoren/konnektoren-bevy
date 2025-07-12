@@ -1,0 +1,344 @@
+= Konnektoren Bevy Game Development Guide
+:toc:
+:toc-title: Table of Contents
+:sectnums:
+
+== Introduction
+
+This guide explains how to build an educational or interactive game using the `konnektoren-bevy` library. It covers project setup, architecture, and practical steps for leveraging the library’s modular plugins for UI, input, theming, screens, and settings.
+
+== Prerequisites
+
+* Rust toolchain (edition 2021)
+* Bevy engine (0.16 or compatible)
+* konnektoren-bevy library (local or crates.io)
+* bevy_egui for UI
+* (Optional) Trunk for WASM builds
+
+== Project Setup
+
+. **Create a new game project**
++
+[source,shell]
+----
+cargo new konnektoren-my-game
+cd konnektoren-my-game
+----
+
+. **Add dependencies in `Cargo.toml`**
++
+[source,toml]
+----
+[dependencies]
+bevy = "0.16"
+bevy_egui = "0.24"
+konnektoren-bevy = { path = "../konnektoren-bevy" }
+# Add other dependencies as needed
+----
+
+. **Set up workspace if using multiple crates**
++
+[source,toml]
+----
+[workspace]
+members = [
+    "konnektoren-my-game",
+    "konnektoren-bevy"
+]
+----
+
+. **Create a main entry point**
++
+[source,rust]
+----
+fn main() {
+    App::new()
+        .add_plugins(AppPlugin) // Your main plugin
+        .run();
+}
+----
+
+== Core Architecture
+
+Your game will be structured as a set of Bevy plugins and modules. The recommended architecture is:
+
+* `plugin.rs`: Main plugin that adds all subsystems and configures Bevy.
+* `screens/`: Game states and transitions (Splash, Title, Gameplay, Loading, etc.)
+* `menus/`: Main menu, settings, credits, pause menu.
+* `player/`: Player entity, movement, input, and stats.
+* `gameplay/`: Your core game logic (e.g., quiz, puzzle, adventure, etc.)
+* `options/`: Collectible or selectable options, spawning, and effects.
+* `map/`: World layout and visualization (if needed).
+* `audio/`: Music and sound effects.
+* `effects/`: Particle and visual effects.
+* `settings/`: Game settings, input configuration, and persistence.
+* `theme/`: UI theming and reusable widgets.
+
+== Step-by-Step Game Creation
+
+=== 1. Add the Main Plugin
+
+Create `plugin.rs` and add all required plugins:
+
+[source,rust]
+----
+pub struct AppPlugin;
+
+impl Plugin for AppPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(DefaultPlugins)
+            .add_plugins(EguiPlugin { enable_multipass_for_primary_context: true })
+            .add_plugins((
+                KonnektorenThemePlugin,
+                UIPlugin,
+                InputPlugin,
+                ScreensPlugin,
+                SettingsPlugin,
+            ))
+            // Add your game logic plugins
+            .add_plugins((
+                // e.g. gameplay::plugin,
+                // e.g. player::plugin,
+                // e.g. menus::plugin,
+                // e.g. audio::plugin,
+                // e.g. effects::plugin,
+            ));
+        // Configure system sets and states as needed
+    }
+}
+----
+
+=== 2. Implement Screens and State Management
+
+Use the `ScreensPlugin` from `konnektoren-bevy` for splash, title, loading, and gameplay screens.
+
+[source,rust]
+----
+app.init_state::<Screen>();
+app.add_plugins(screens::plugin);
+----
+
+Define your own screen states:
+
+[source,rust]
+----
+#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+pub enum Screen {
+    #[default]
+    Splash,
+    Title,
+    Loading,
+    Gameplay,
+}
+----
+
+Add systems for transitions (e.g., splash to title):
+
+[source,rust]
+----
+app.add_systems(OnEnter(Screen::Splash), spawn_splash_screen);
+app.add_systems(Update, handle_splash_events.run_if(in_state(Screen::Splash)));
+----
+
+=== 3. Add Menus and UI
+
+Use the menu system for main menu, settings, credits, and pause:
+
+[source,rust]
+----
+app.init_state::<Menu>();
+app.add_plugins(menus::plugin);
+----
+
+Use `bevy_egui` and `konnektoren-bevy` widgets for UI panels:
+
+[source,rust]
+----
+fn main_menu_egui_ui(
+    mut contexts: bevy_egui::EguiContexts,
+    theme: Res<KonnektorenTheme>,
+    responsive: Res<ResponsiveInfo>,
+    ...
+) {
+    egui::CentralPanel::default()
+        .frame(egui::Frame::NONE.fill(theme.base_100))
+        .show(ctx, |ui| {
+            ResponsiveText::new("My Game Title", ResponsiveFontSize::Title, theme.primary)
+                .responsive(&responsive)
+                .strong()
+                .ui(ui);
+            // Add buttons, etc.
+        });
+}
+----
+
+=== 4. Configure Input
+
+Use the input plugin for device assignment and player controls:
+
+[source,rust]
+----
+app.add_plugins(InputPlugin);
+----
+
+Assign devices automatically or via settings screen:
+
+[source,rust]
+----
+// Auto-assign devices based on availability
+app.add_systems(Update, auto_assign_input_devices);
+----
+
+Handle input events for player movement or actions:
+
+[source,rust]
+----
+fn handle_player_input(
+    mut player_query: Query<(&mut PlayerController, &InputController), ...>
+) {
+    for (mut controller, input_controller) in &mut player_query {
+        controller.movement_input = input_controller.movement;
+    }
+}
+----
+
+=== 5. Implement Gameplay Logic
+
+Create your own gameplay module (e.g., quiz, puzzle, adventure):
+
+[source,rust]
+----
+// Example: Gameplay system
+app.add_plugins(gameplay::plugin);
+----
+
+Define components and systems for your game mechanics:
+
+[source,rust]
+----
+// e.g. Question, Option, Score, Timer, etc.
+app.add_systems(Update, update_gameplay);
+----
+
+=== 6. Add Map and World (Optional)
+
+If your game uses a grid or world layout, set up a map module:
+
+[source,rust]
+----
+app.add_plugins(map::plugin);
+----
+
+Use `GridMap` resource and `GridPosition` component for entities.
+
+=== 7. Add Audio and Effects
+
+Use the audio plugin for music and sound effects:
+
+[source,rust]
+----
+app.add_plugins(audio::plugin);
+----
+
+Spawn sound effects on events:
+
+[source,rust]
+----
+commands.spawn(sound_effect(audio_assets.correct_sound.clone()));
+----
+
+Add particle effects via the effects plugin:
+
+[source,rust]
+----
+app.add_plugins(effects::plugin);
+----
+
+=== 8. Implement Settings and Configuration
+
+Use the settings plugin for audio, input, and gameplay settings:
+
+[source,rust]
+----
+app.add_plugins(SettingsPlugin);
+----
+
+Create settings screens using `SettingsScreenConfig` and `SettingsSection`:
+
+[source,rust]
+----
+let config = SettingsScreenConfig::new("Settings")
+    .add_section(SettingsSection::audio_section())
+    .add_section(SettingsSection::input_section());
+commands.spawn((Name::new("Settings Screen"), config));
+----
+
+=== 9. Theming and UI Widgets
+
+Customize your UI with the theme system:
+
+[source,rust]
+----
+app.add_plugins(KonnektorenThemePlugin);
+----
+
+Use `ThemedButton`, `ResponsiveText`, and other widgets for consistent UI.
+
+=== 10. Question System (for Educational Games)
+
+Integrate a question system for challenges:
+
+[source,rust]
+----
+app.add_plugins(question::plugin);
+----
+
+Use `QuestionSystem` resource and spawn question overlays.
+
+=== 11. Testing and Iteration
+
+* Use Bevy’s hot-reload and Trunk for web builds.
+* Test input, UI, and gameplay on desktop and web.
+* Use the demo as a reference for splash/about/settings screens.
+
+== Example Directory Structure
+
+[source]
+----
+src/
+  main.rs
+  plugin.rs
+  screens/
+  menus/
+  player/
+  gameplay/
+  options/
+  map/
+  audio/
+  effects/
+  question/
+  settings/
+  theme/
+assets/
+  logo.png
+  audio/
+  ...
+----
+
+== Tips and Best Practices
+
+* Use modular plugins for each subsystem.
+* Keep UI logic separate from gameplay logic.
+* Use Bevy’s ECS for extensibility and maintainability.
+* Leverage konnektoren-bevy’s screen and settings plugins for rapid development.
+* Test on both desktop and web (WASM).
+
+== Further Reading
+
+* Bevy Book: https://bevyengine.org/learn/book/
+* konnektoren-bevy Demo: See `demo/` for splash, about, settings, and UI examples.
+* See the library documentation for details on each plugin and API.
+
+== Conclusion
+
+By following this guide and using the `konnektoren-bevy` library, you can rapidly build educational games and interactive applications with modern UI, input, and settings support. Use the demo as a reference, and extend with your own gameplay modules.
