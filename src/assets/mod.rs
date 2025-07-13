@@ -33,17 +33,24 @@ pub struct KonnektorenAssetRegistry {
     pub levels: HashMap<String, Handle<LevelAsset>>,
     pub loaded_challenges: HashMap<String, bool>,
     pub loaded_levels: HashMap<String, bool>,
+    // Add strong references to keep assets alive
+    pub challenge_holders: HashMap<String, Handle<ChallengeAsset>>,
+    pub level_holders: HashMap<String, Handle<LevelAsset>>,
 }
 
 impl KonnektorenAssetRegistry {
     /// Register a challenge asset with a logical ID
     pub fn register_challenge(&mut self, id: String, handle: Handle<ChallengeAsset>) {
-        self.challenges.insert(id, handle);
+        // Store both in the registry and as a holder to prevent unloading
+        self.challenges.insert(id.clone(), handle.clone());
+        self.challenge_holders.insert(id, handle);
     }
 
     /// Register a level asset with a logical ID
     pub fn register_level(&mut self, id: String, handle: Handle<LevelAsset>) {
-        self.levels.insert(id, handle);
+        // Store both in the registry and as a holder to prevent unloading
+        self.levels.insert(id.clone(), handle.clone());
+        self.level_holders.insert(id, handle);
     }
 
     /// Get a challenge handle by ID
@@ -81,6 +88,39 @@ impl KonnektorenAssetRegistry {
             .filter_map(|(id, &loaded)| if loaded { Some(id.clone()) } else { None })
             .collect()
     }
+
+    /// Check if all registered assets are loaded
+    pub fn are_all_assets_loaded(&self) -> bool {
+        let all_challenges_loaded = self
+            .challenges
+            .keys()
+            .all(|id| self.is_challenge_loaded(id));
+        let all_levels_loaded = self.levels.keys().all(|id| self.is_level_loaded(id));
+
+        all_challenges_loaded && all_levels_loaded && !self.challenges.is_empty()
+    }
+
+    /// Get loading progress (0.0 to 1.0)
+    pub fn get_loading_progress(&self) -> f32 {
+        let total_assets = self.challenges.len() + self.levels.len();
+        if total_assets == 0 {
+            return 0.0;
+        }
+
+        let loaded_challenges = self
+            .loaded_challenges
+            .values()
+            .filter(|&&loaded| loaded)
+            .count();
+        let loaded_levels = self
+            .loaded_levels
+            .values()
+            .filter(|&&loaded| loaded)
+            .count();
+        let loaded_total = loaded_challenges + loaded_levels;
+
+        loaded_total as f32 / total_assets as f32
+    }
 }
 
 /// System to update the asset registry when assets finish loading
@@ -116,12 +156,20 @@ fn update_asset_registry(
     // Apply updates
     for id in challenge_updates {
         registry.loaded_challenges.insert(id.clone(), true);
-        info!("Challenge '{}' finished loading", id);
+        info!("Challenge '{}' finished loading and is held in memory", id);
     }
 
     for id in level_updates {
         registry.loaded_levels.insert(id.clone(), true);
-        info!("Level '{}' finished loading", id);
+        info!("Level '{}' finished loading and is held in memory", id);
+    }
+
+    // Log overall progress periodically
+    if !registry.challenges.is_empty() || !registry.levels.is_empty() {
+        let progress = registry.get_loading_progress();
+        if progress > 0.0 && progress < 1.0 {
+            debug!("Asset loading progress: {:.1}%", progress * 100.0);
+        }
     }
 }
 
@@ -145,7 +193,10 @@ impl KonnektorenAssetLoader for App {
         let mut registry = self.world_mut().resource_mut::<KonnektorenAssetRegistry>();
         registry.register_challenge(id.to_string(), handle.clone());
 
-        info!("Loading challenge '{}' from '{}'", id, path);
+        info!(
+            "Registered challenge '{}' from '{}' (handle will be held)",
+            id, path
+        );
         handle
     }
 
@@ -156,7 +207,10 @@ impl KonnektorenAssetLoader for App {
         let mut registry = self.world_mut().resource_mut::<KonnektorenAssetRegistry>();
         registry.register_level(id.to_string(), handle.clone());
 
-        info!("Loading level '{}' from '{}'", id, path);
+        info!(
+            "Registered level '{}' from '{}' (handle will be held)",
+            id, path
+        );
         handle
     }
 
