@@ -1,3 +1,6 @@
+#[cfg(feature = "assets")]
+pub mod assets;
+
 #[cfg(feature = "input")]
 pub mod input;
 
@@ -14,6 +17,11 @@ pub mod screens;
 pub mod settings;
 
 pub mod prelude {
+    #[cfg(feature = "assets")]
+    pub use crate::assets::{
+        KonnektorenAssetLoader, KonnektorenAssetRegistry, KonnektorenAssetsPlugin, *,
+    };
+
     #[cfg(feature = "theme")]
     pub use crate::theme::{KonnektorenThemePlugin, *};
 

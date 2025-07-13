@@ -17,9 +17,13 @@ bevy = { workspace = true }
 bevy_egui = { workspace = true }
 chrono = "0.4.41"
 wasm-bindgen = { workspace = true }
+serde_yaml = { version = "0.9", optional = true }
+thiserror = { version = "1.0", optional = true }
+konnektoren-core = { git = "https://github.com/konnektoren/konnektoren-rs.git", optional = true }
 
 [features]
-default = ["theme", "ui", "screens", "settings", "input"]
+default = ["assets", "theme", "ui", "screens", "settings", "input"]
+assets = ["dep:konnektoren-core", "dep:serde_yaml", "dep:thiserror"]
 theme = []
 ui = ["theme"]
 screens = ["theme", "ui"]
