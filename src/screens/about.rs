@@ -8,7 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_egui::{
     egui::{self, Color32, Widget},
-    EguiContextPass, EguiContexts,
+    EguiContexts,
 };
 use chrono::Utc;
 
@@ -17,9 +17,10 @@ pub struct AboutPlugin;
 
 impl Plugin for AboutPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AboutDismissed>()
-            .add_systems(Update, (check_about_config, handle_about_completion))
-            .add_systems(EguiContextPass, render_about_ui);
+        app.add_event::<AboutDismissed>().add_systems(
+            Update,
+            (check_about_config, handle_about_completion, render_about_ui),
+        );
     }
 }
 
@@ -311,36 +312,37 @@ fn render_about_ui(
         return;
     }
 
-    let ctx = contexts.ctx_mut();
+    if let Ok(ctx) = contexts.ctx_mut() {
+        // Only render the first (most recent) about screen to avoid widget ID conflicts
+        if let Some((entity, mut about)) = query.iter_mut().next() {
+            // Check dismissal first with separate borrow
+            let should_dismiss =
+                about.config.manual_dismissal && input.just_pressed(KeyCode::Escape);
+            if should_dismiss {
+                dismiss_events.write(AboutDismissed { entity });
+                return;
+            }
 
-    // Only render the first (most recent) about screen to avoid widget ID conflicts
-    if let Some((entity, mut about)) = query.iter_mut().next() {
-        // Check dismissal first with separate borrow
-        let should_dismiss = about.config.manual_dismissal && input.just_pressed(KeyCode::Escape);
-        if should_dismiss {
-            dismiss_events.write(AboutDismissed { entity });
-            return;
+            // Destructure to get separate borrows
+            let ActiveAbout {
+                config,
+                navigation_state,
+            } = &mut *about;
+
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(theme.base_100))
+                .show(ctx, |ui| {
+                    render_about_content(
+                        ui,
+                        config,
+                        navigation_state,
+                        &theme,
+                        &responsive,
+                        entity,
+                        &mut dismiss_events,
+                    );
+                });
         }
-
-        // Destructure to get separate borrows
-        let ActiveAbout {
-            config,
-            navigation_state,
-        } = &mut *about;
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(theme.base_100))
-            .show(ctx, |ui| {
-                render_about_content(
-                    ui,
-                    config,
-                    navigation_state,
-                    &theme,
-                    &responsive,
-                    entity,
-                    &mut dismiss_events,
-                );
-            });
     }
 }
 

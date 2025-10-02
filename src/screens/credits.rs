@@ -8,7 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_egui::{
     egui::{self, Widget},
-    EguiContextPass, EguiContexts,
+    EguiContexts,
 };
 
 /// Plugin for reusable credits screen functionality
@@ -16,9 +16,14 @@ pub struct CreditsPlugin;
 
 impl Plugin for CreditsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<CreditsDismissed>()
-            .add_systems(Update, (check_credits_config, handle_credits_completion))
-            .add_systems(EguiContextPass, render_credits_ui);
+        app.add_event::<CreditsDismissed>().add_systems(
+            Update,
+            (
+                check_credits_config,
+                handle_credits_completion,
+                render_credits_ui,
+            ),
+        );
     }
 }
 
@@ -305,36 +310,37 @@ fn render_credits_ui(
         return;
     }
 
-    let ctx = contexts.ctx_mut();
+    if let Ok(ctx) = contexts.ctx_mut() {
+        // Only render the first (most recent) credits screen to avoid widget ID conflicts
+        if let Some((entity, mut credits)) = query.iter_mut().next() {
+            // Check dismissal first with separate borrow
+            let should_dismiss =
+                credits.config.manual_dismissal && input.just_pressed(KeyCode::Escape);
+            if should_dismiss {
+                dismiss_events.write(CreditsDismissed { entity });
+                return;
+            }
 
-    // Only render the first (most recent) credits screen to avoid widget ID conflicts
-    if let Some((entity, mut credits)) = query.iter_mut().next() {
-        // Check dismissal first with separate borrow
-        let should_dismiss = credits.config.manual_dismissal && input.just_pressed(KeyCode::Escape);
-        if should_dismiss {
-            dismiss_events.write(CreditsDismissed { entity });
-            return;
+            // Destructure to get separate borrows
+            let ActiveCredits {
+                config,
+                navigation_state,
+            } = &mut *credits;
+
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(theme.base_100))
+                .show(ctx, |ui| {
+                    render_credits_content(
+                        ui,
+                        config,
+                        navigation_state,
+                        &theme,
+                        &responsive,
+                        entity,
+                        &mut dismiss_events,
+                    );
+                });
         }
-
-        // Destructure to get separate borrows
-        let ActiveCredits {
-            config,
-            navigation_state,
-        } = &mut *credits;
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(theme.base_100))
-            .show(ctx, |ui| {
-                render_credits_content(
-                    ui,
-                    config,
-                    navigation_state,
-                    &theme,
-                    &responsive,
-                    entity,
-                    &mut dismiss_events,
-                );
-            });
     }
 }
 

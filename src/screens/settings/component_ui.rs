@@ -117,30 +117,30 @@ pub fn render_component_settings_ui(
         return;
     }
 
-    let ctx = contexts.ctx_mut();
+    if let Ok(ctx) = contexts.ctx_mut() {
+        if let Ok(mut config) = config_query.single_mut() {
+            let should_dismiss = config.allow_dismissal && input.just_pressed(KeyCode::Escape);
+            if should_dismiss {
+                settings_events.write(ComponentSettingsEvent::Dismissed {
+                    entity: Entity::PLACEHOLDER,
+                });
+                return;
+            }
 
-    if let Ok(mut config) = config_query.single_mut() {
-        let should_dismiss = config.allow_dismissal && input.just_pressed(KeyCode::Escape);
-        if should_dismiss {
-            settings_events.write(ComponentSettingsEvent::Dismissed {
-                entity: Entity::PLACEHOLDER,
-            });
-            return;
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(theme.base_100))
+                .show(ctx, |ui| {
+                    render_component_settings_content(
+                        ui,
+                        &mut config,
+                        &theme,
+                        &responsive,
+                        &settings_query,
+                        &mut settings_events,
+                        &mut commands,
+                    );
+                });
         }
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(theme.base_100))
-            .show(ctx, |ui| {
-                render_component_settings_content(
-                    ui,
-                    &mut config,
-                    &theme,
-                    &responsive,
-                    &settings_query,
-                    &mut settings_events,
-                    &mut commands,
-                );
-            });
     }
 }
 

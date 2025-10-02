@@ -14,17 +14,16 @@ pub struct SplashPlugin;
 
 impl Plugin for SplashPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SplashDismissed>()
-            .add_systems(
-                Update,
-                (
-                    check_splash_config,
-                    update_splash_timer,
-                    handle_splash_completion,
-                    load_splash_images,
-                ),
-            )
-            .add_systems(bevy_egui::EguiContextPass, render_splash_ui);
+        app.add_event::<SplashDismissed>().add_systems(
+            Update,
+            (
+                check_splash_config,
+                update_splash_timer,
+                handle_splash_completion,
+                load_splash_images,
+                render_splash_ui,
+            ),
+        );
     }
 }
 
@@ -334,38 +333,38 @@ fn render_splash_ui(
         return;
     }
 
-    let ctx = contexts.ctx_mut();
+    if let Ok(ctx) = contexts.ctx_mut() {
+        for (entity, splash, loaded_textures) in query.iter() {
+            let config = &splash.config;
 
-    for (entity, splash, loaded_textures) in query.iter() {
-        let config = &splash.config;
+            // Handle keyboard dismissal
+            if config.manual_dismissal
+                && (input.just_pressed(KeyCode::Space)
+                    || input.just_pressed(KeyCode::Enter)
+                    || input.just_pressed(KeyCode::Escape))
+            {
+                dismiss_events.write(SplashDismissed { entity });
+                continue;
+            }
 
-        // Handle keyboard dismissal
-        if config.manual_dismissal
-            && (input.just_pressed(KeyCode::Space)
-                || input.just_pressed(KeyCode::Enter)
-                || input.just_pressed(KeyCode::Escape))
-        {
-            dismiss_events.write(SplashDismissed { entity });
-            continue;
+            // Determine background color
+            let bg_color = config.background_color.unwrap_or(theme.base_100);
+
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(bg_color))
+                .show(ctx, |ui| {
+                    render_splash_content(
+                        ui,
+                        config,
+                        splash,
+                        &theme,
+                        &responsive,
+                        entity,
+                        &mut dismiss_events,
+                        loaded_textures,
+                    );
+                });
         }
-
-        // Determine background color
-        let bg_color = config.background_color.unwrap_or(theme.base_100);
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(bg_color))
-            .show(ctx, |ui| {
-                render_splash_content(
-                    ui,
-                    config,
-                    splash,
-                    &theme,
-                    &responsive,
-                    entity,
-                    &mut dismiss_events,
-                    loaded_textures,
-                );
-            });
     }
 }
 

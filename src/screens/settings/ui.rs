@@ -1,5 +1,5 @@
 use super::config::*;
-use super::input_configuration::{ActiveInputConfiguration, InputConfigurationEvent}; // Add this import
+use super::input_configuration::{ActiveInputConfiguration, InputConfigurationEvent};
 use crate::{
     theme::KonnektorenTheme,
     ui::{
@@ -133,7 +133,7 @@ pub fn update_settings_screen_values(
     }
 }
 
-/// System to render settings UI
+// At the top, change the egui context handling:
 pub fn render_settings_screen_ui(
     mut contexts: EguiContexts,
     theme: Res<KonnektorenTheme>,
@@ -146,40 +146,38 @@ pub fn render_settings_screen_ui(
         return;
     }
 
-    if contexts.try_ctx_mut().is_none() {
-        return;
-    }
+    // Get the egui context directly
+    if let Ok(ctx) = contexts.ctx_mut() {
+        // Only render the first (most recent) settings screen
+        if let Some((entity, mut settings)) = query.iter_mut().next() {
+            // Check for escape key dismissal
+            let should_dismiss =
+                settings.config.allow_dismissal && input.just_pressed(KeyCode::Escape);
+            if should_dismiss {
+                settings_events.write(SettingsScreenEvent::Dismissed { entity });
+                return;
+            }
 
-    let ctx = contexts.ctx_mut();
+            // Destructure to get separate borrows
+            let ActiveSettingsScreen {
+                config,
+                navigation_state,
+            } = &mut *settings;
 
-    // Only render the first (most recent) settings screen
-    if let Some((entity, mut settings)) = query.iter_mut().next() {
-        // Check for escape key dismissal
-        let should_dismiss = settings.config.allow_dismissal && input.just_pressed(KeyCode::Escape);
-        if should_dismiss {
-            settings_events.write(SettingsScreenEvent::Dismissed { entity });
-            return;
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(theme.base_100))
+                .show(ctx, |ui| {
+                    render_settings_content(
+                        ui,
+                        config,
+                        navigation_state,
+                        &theme,
+                        &responsive,
+                        entity,
+                        &mut settings_events,
+                    );
+                });
         }
-
-        // Destructure to get separate borrows
-        let ActiveSettingsScreen {
-            config,
-            navigation_state,
-        } = &mut *settings;
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(theme.base_100))
-            .show(ctx, |ui| {
-                render_settings_content(
-                    ui,
-                    config,
-                    navigation_state,
-                    &theme,
-                    &responsive,
-                    entity,
-                    &mut settings_events,
-                );
-            });
     }
 }
 
