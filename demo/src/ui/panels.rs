@@ -17,29 +17,31 @@ pub fn render_side_panel(
     existing_settings_configs: &Query<Entity, With<SettingsScreenConfig>>,
     existing_credits_configs: &Query<Entity, With<CreditsConfig>>,
 ) {
-    egui::SidePanel::left("demo_panel")
-        .resizable(true)
-        .default_width(280.0)
-        .show(contexts.ctx_mut(), |ui| {
-            ui.heading("Konnektoren Bevy Demo");
-            ui.separator();
+    if let Ok(ctx) = contexts.ctx_mut() {
+        egui::SidePanel::left("demo_panel")
+            .resizable(true)
+            .default_width(280.0)
+            .show(ctx, |ui| {
+                ui.heading("Konnektoren Bevy Demo");
+                ui.separator();
 
-            render_splash_section(ui, commands);
-            ui.separator();
-            render_about_section(ui, commands, existing_about_configs);
-            ui.separator();
-            render_settings_section(ui, commands, responsive, existing_settings_configs);
-            ui.separator();
-            render_credits_section(ui, commands, existing_credits_configs);
-            ui.separator();
-            render_status_section(
-                ui,
-                responsive,
-                active_splash_query,
-                active_about_query,
-                active_settings_query,
-            );
-        });
+                render_splash_section(ui, commands);
+                ui.separator();
+                render_about_section(ui, commands, existing_about_configs);
+                ui.separator();
+                render_settings_section(ui, commands, responsive, existing_settings_configs);
+                ui.separator();
+                render_credits_section(ui, commands, existing_credits_configs);
+                ui.separator();
+                render_status_section(
+                    ui,
+                    responsive,
+                    active_splash_query,
+                    active_about_query,
+                    active_settings_query,
+                );
+            });
+    }
 }
 
 pub fn render_main_panel(
@@ -48,9 +50,9 @@ pub fn render_main_panel(
     responsive: &ResponsiveInfo,
     _demo_state: &DemoState,
 ) {
-    egui::CentralPanel::default().show(contexts.ctx_mut(), |ui| {
-        show_complete_demo(ui, theme, responsive)
-    });
+    if let Ok(ctx) = contexts.ctx_mut() {
+        egui::CentralPanel::default().show(ctx, |ui| show_complete_demo(ui, theme, responsive));
+    }
 }
 
 fn render_credits_section(

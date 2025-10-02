@@ -4,7 +4,7 @@ use konnektoren_bevy::prelude::SettingValue;
 use konnektoren_bevy::prelude::*;
 
 pub fn handle_splash_dismissed(
-    mut splash_events: EventReader<SplashDismissed>,
+    mut splash_events: MessageReader<SplashDismissed>,
     mut demo_query: Query<&mut DemoState>,
 ) {
     for _event in splash_events.read() {
@@ -16,13 +16,13 @@ pub fn handle_splash_dismissed(
     }
 }
 
-pub fn handle_about_dismissed(mut about_events: EventReader<AboutDismissed>) {
+pub fn handle_about_dismissed(mut about_events: MessageReader<AboutDismissed>) {
     for event in about_events.read() {
         info!("About screen dismissed for entity {:?}", event.entity);
     }
 }
 
-pub fn handle_settings_events(mut settings_events: EventReader<SettingsScreenEvent>) {
+pub fn handle_settings_events(mut settings_events: MessageReader<SettingsScreenEvent>) {
     for event in settings_events.read() {
         match event {
             SettingsScreenEvent::ValueChanged {

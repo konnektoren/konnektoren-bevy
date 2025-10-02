@@ -23,15 +23,13 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Konnektoren Bevy - Demo".into(),
-                        resolution: (800.0, 600.0).into(),
+                        resolution: (800, 600).into(),
                         ..default()
                     }),
                     ..default()
                 }),
         )
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
+        .add_plugins(EguiPlugin::default())
         .add_plugins(KonnektorenThemePlugin)
         .add_plugins(UIPlugin)
         .add_plugins(ScreensPlugin)
@@ -43,8 +41,8 @@ fn main() {
                 handle_splash_dismissed,
                 handle_about_dismissed,
                 handle_settings_events,
+                demo_ui,
             ),
         )
-        .add_systems(bevy_egui::EguiContextPass, demo_ui)
         .run();
 }
