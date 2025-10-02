@@ -13,7 +13,10 @@ impl Plugin for EguiThemePlugin {
 
 /// System to apply the theme to egui
 fn apply_theme(mut contexts: EguiContexts, theme: Res<KonnektorenTheme>) {
-    let ctx = contexts.ctx_mut();
+    // Handle the Result properly
+    let Ok(ctx) = contexts.ctx_mut() else {
+        return;
+    };
 
     // Calculate half radius for widgets
     let half_radius = if theme.radius > 1 {

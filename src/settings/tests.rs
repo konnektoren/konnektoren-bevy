@@ -382,7 +382,7 @@ fn test_settings_plugin_integration() {
     // Verify the plugin was added correctly
     assert!(app
         .world()
-        .contains_resource::<Events<SettingChangedEvent>>());
+        .contains_resource::<Messages<SettingChangedEvent>>());
 
     let entity;
     {

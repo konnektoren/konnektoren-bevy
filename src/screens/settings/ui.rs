@@ -1,5 +1,5 @@
 use super::config::*;
-use super::input_configuration::{ActiveInputConfiguration, InputConfigurationEvent}; // Add this import
+use super::input_configuration::{ActiveInputConfiguration, InputConfigurationEvent};
 use crate::{
     theme::KonnektorenTheme,
     ui::{
@@ -92,7 +92,7 @@ pub fn check_settings_screen_config(
 
 /// System to handle settings value changes and update the active screen
 pub fn update_settings_screen_values(
-    mut settings_events: EventReader<SettingsScreenEvent>,
+    mut settings_events: MessageReader<SettingsScreenEvent>,
     mut active_settings_query: Query<&mut ActiveSettingsScreen>,
 ) {
     for event in settings_events.read() {
@@ -133,53 +133,51 @@ pub fn update_settings_screen_values(
     }
 }
 
-/// System to render settings UI
+// At the top, change the egui context handling:
 pub fn render_settings_screen_ui(
     mut contexts: EguiContexts,
     theme: Res<KonnektorenTheme>,
     responsive: Res<ResponsiveInfo>,
     mut query: Query<(Entity, &mut ActiveSettingsScreen)>,
-    mut settings_events: EventWriter<SettingsScreenEvent>,
+    mut settings_events: MessageWriter<SettingsScreenEvent>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if query.is_empty() {
         return;
     }
 
-    if contexts.try_ctx_mut().is_none() {
-        return;
-    }
+    // Get the egui context directly
+    if let Ok(ctx) = contexts.ctx_mut() {
+        // Only render the first (most recent) settings screen
+        if let Some((entity, mut settings)) = query.iter_mut().next() {
+            // Check for escape key dismissal
+            let should_dismiss =
+                settings.config.allow_dismissal && input.just_pressed(KeyCode::Escape);
+            if should_dismiss {
+                settings_events.write(SettingsScreenEvent::Dismissed { entity });
+                return;
+            }
 
-    let ctx = contexts.ctx_mut();
+            // Destructure to get separate borrows
+            let ActiveSettingsScreen {
+                config,
+                navigation_state,
+            } = &mut *settings;
 
-    // Only render the first (most recent) settings screen
-    if let Some((entity, mut settings)) = query.iter_mut().next() {
-        // Check for escape key dismissal
-        let should_dismiss = settings.config.allow_dismissal && input.just_pressed(KeyCode::Escape);
-        if should_dismiss {
-            settings_events.write(SettingsScreenEvent::Dismissed { entity });
-            return;
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(theme.base_100))
+                .show(ctx, |ui| {
+                    render_settings_content(
+                        ui,
+                        config,
+                        navigation_state,
+                        &theme,
+                        &responsive,
+                        entity,
+                        &mut settings_events,
+                    );
+                });
         }
-
-        // Destructure to get separate borrows
-        let ActiveSettingsScreen {
-            config,
-            navigation_state,
-        } = &mut *settings;
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(theme.base_100))
-            .show(ctx, |ui| {
-                render_settings_content(
-                    ui,
-                    config,
-                    navigation_state,
-                    &theme,
-                    &responsive,
-                    entity,
-                    &mut settings_events,
-                );
-            });
     }
 }
 
@@ -191,7 +189,7 @@ fn render_settings_content(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     ui.vertical_centered(|ui| {
         let max_width = if responsive.is_mobile() {
@@ -265,7 +263,7 @@ fn render_mobile_settings_layout(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     let section_spacing = responsive.spacing(ResponsiveSpacing::Large);
 
@@ -299,7 +297,7 @@ fn render_desktop_settings_layout(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     for section in &config.sections {
         // Section header
@@ -349,7 +347,7 @@ fn render_mobile_setting_item(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     ui.vertical_centered(|ui| {
         ResponsiveText::new(
@@ -374,7 +372,7 @@ fn render_desktop_setting_control(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     render_setting_control(ui, setting, theme, responsive, entity, settings_events);
 }
@@ -386,7 +384,7 @@ fn render_setting_control(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     #[cfg(feature = "settings")]
     {
@@ -674,8 +672,8 @@ fn render_setting_control(
 /// System to handle settings events
 pub fn handle_settings_screen_events(
     mut commands: Commands,
-    mut settings_events: EventReader<SettingsScreenEvent>,
-    mut input_config_events: EventWriter<InputConfigurationEvent>,
+    mut settings_events: MessageReader<SettingsScreenEvent>,
+    mut input_config_events: MessageWriter<InputConfigurationEvent>,
 ) {
     for event in settings_events.read() {
         match event {

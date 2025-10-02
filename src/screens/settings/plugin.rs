@@ -1,13 +1,14 @@
 use super::*;
 use bevy::prelude::*;
+use bevy_egui::EguiPrimaryContextPass;
 
 /// Plugin for reusable settings screen functionality
 pub struct SettingsScreenPlugin;
 
 impl Plugin for SettingsScreenPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SettingsScreenEvent>()
-            .add_event::<ComponentSettingsEvent>()
+        app.add_message::<SettingsScreenEvent>()
+            .add_message::<ComponentSettingsEvent>()
             .add_systems(
                 Update,
                 (
@@ -17,7 +18,7 @@ impl Plugin for SettingsScreenPlugin {
                     cleanup_component_settings,
                 ),
             )
-            .add_systems(bevy_egui::EguiContextPass, render_settings_screen_ui)
+            .add_systems(EguiPrimaryContextPass, render_settings_screen_ui)
             // Add input configuration plugin
             .add_plugins(InputConfigurationPlugin);
 
@@ -28,7 +29,7 @@ impl Plugin for SettingsScreenPlugin {
                 Update,
                 (check_component_settings, process_pending_setting_updates),
             )
-            .add_systems(bevy_egui::EguiContextPass, render_component_settings_ui);
+            .add_systems(EguiPrimaryContextPass, render_component_settings_ui);
         }
     }
 }

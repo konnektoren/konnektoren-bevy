@@ -20,20 +20,19 @@ pub struct InputConfigurationPlugin;
 
 impl Plugin for InputConfigurationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<InputConfigurationEvent>()
-            .add_systems(
-                Update,
-                (
-                    handle_input_configuration_events,
-                    cleanup_input_configuration,
-                ),
-            )
-            .add_systems(bevy_egui::EguiContextPass, render_input_configuration_ui);
+        app.add_message::<InputConfigurationEvent>().add_systems(
+            Update,
+            (
+                handle_input_configuration_events,
+                cleanup_input_configuration,
+                render_input_configuration_ui,
+            ),
+        );
     }
 }
 
 /// Events for input configuration
-#[derive(Event)]
+#[derive(Message)]
 pub enum InputConfigurationEvent {
     /// Open input configuration
     Open,
@@ -54,9 +53,9 @@ pub struct ActiveInputConfiguration {
 
 /// System to handle input configuration events
 pub fn handle_input_configuration_events(
-    mut config_events: EventReader<InputConfigurationEvent>,
+    mut config_events: MessageReader<InputConfigurationEvent>,
     assignment: Option<ResMut<InputDeviceAssignment>>,
-    mut input_events: EventWriter<InputEvent>,
+    mut input_events: MessageWriter<InputEvent>,
     available_devices: Option<Res<AvailableInputDevices>>,
 ) {
     // Early return if input resources aren't available
@@ -134,7 +133,7 @@ pub fn render_input_configuration_ui(
     query: Query<(Entity, &ActiveInputConfiguration)>,
     assignment: Option<Res<InputDeviceAssignment>>,
     available_devices: Option<Res<AvailableInputDevices>>,
-    mut config_events: EventWriter<InputConfigurationEvent>,
+    mut config_events: MessageWriter<InputConfigurationEvent>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if query.is_empty() {
@@ -161,27 +160,27 @@ pub fn render_input_configuration_ui(
         }
     };
 
-    let ctx = contexts.ctx_mut();
-
     // Handle escape to close
     if input.just_pressed(KeyCode::Escape) {
         config_events.write(InputConfigurationEvent::Close);
         return;
     }
 
-    egui::CentralPanel::default()
-        .frame(egui::Frame::NONE.fill(theme.base_100))
-        .show(ctx, |ui| {
-            render_input_configuration_content(
-                ui,
-                config,
-                &theme,
-                &responsive,
-                &assignment,
-                &available_devices,
-                &mut config_events,
-            );
-        });
+    if let Ok(ctx) = contexts.ctx_mut() {
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE.fill(theme.base_100))
+            .show(ctx, |ui| {
+                render_input_configuration_content(
+                    ui,
+                    config,
+                    &theme,
+                    &responsive,
+                    &assignment,
+                    &available_devices,
+                    &mut config_events,
+                );
+            });
+    }
 }
 
 /// Render UI when input resources are not available
@@ -189,79 +188,79 @@ fn render_input_unavailable_ui(
     contexts: &mut EguiContexts,
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
     input: &Res<ButtonInput<KeyCode>>,
 ) {
-    let ctx = contexts.ctx_mut();
-
     // Handle escape to close
     if input.just_pressed(KeyCode::Escape) {
         config_events.write(InputConfigurationEvent::Close);
         return;
     }
 
-    egui::CentralPanel::default()
-        .frame(egui::Frame::NONE.fill(theme.base_100))
-        .show(ctx, |ui| {
-            ui.vertical_centered(|ui| {
-                let max_width = if responsive.is_mobile() {
-                    ui.available_width() * 0.95
-                } else {
-                    600.0_f32.min(ui.available_width() * 0.9)
-                };
+    if let Ok(ctx) = contexts.ctx_mut() {
+        egui::CentralPanel::default()
+            .frame(egui::Frame::NONE.fill(theme.base_100))
+            .show(ctx, |ui| {
+                ui.vertical_centered(|ui| {
+                    let max_width = if responsive.is_mobile() {
+                        ui.available_width() * 0.95
+                    } else {
+                        600.0_f32.min(ui.available_width() * 0.9)
+                    };
 
-                ui.set_max_width(max_width);
+                    ui.set_max_width(max_width);
 
-                // Header
-                ui.add_space(responsive.spacing(ResponsiveSpacing::Large));
-                ResponsiveText::new(
-                    "Input Configuration Not Available",
-                    ResponsiveFontSize::Header,
-                    theme.error,
-                )
-                .responsive(responsive)
-                .strong()
-                .ui(ui);
+                    // Header
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::Large));
+                    ResponsiveText::new(
+                        "Input Configuration Not Available",
+                        ResponsiveFontSize::Header,
+                        theme.error,
+                    )
+                    .responsive(responsive)
+                    .strong()
+                    .ui(ui);
 
-                ui.add_space(responsive.spacing(ResponsiveSpacing::Large));
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::Large));
 
-                // Error message
-                ResponsiveText::new(
-                    "Input configuration is not available because the InputPlugin is not loaded.",
-                    ResponsiveFontSize::Medium,
-                    theme.base_content,
-                )
-                .responsive(responsive)
-                .ui(ui);
+                    // Error message
+                    ResponsiveText::new(
+                        "Input configuration is not available because the InputPlugin is not loaded.",
+                        ResponsiveFontSize::Medium,
+                        theme.base_content,
+                    )
+                    .responsive(responsive)
+                    .ui(ui);
 
-                ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
 
-                ResponsiveText::new(
-                    "To enable input configuration, add InputPlugin to your app.",
-                    ResponsiveFontSize::Medium,
-                    theme.accent,
-                )
-                .responsive(responsive)
-                .ui(ui);
+                    ResponsiveText::new(
+                        "To enable input configuration, add InputPlugin to your app.",
+                        ResponsiveFontSize::Medium,
+                        theme.accent,
+                    )
+                    .responsive(responsive)
+                    .ui(ui);
 
-                ui.add_space(responsive.spacing(ResponsiveSpacing::XLarge));
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::XLarge));
 
-                // Back button with unique ID using scope and push_id
-                ui.scope(|ui| {
-                    ui.push_id(Id::new("input_unavailable_back_button"), |ui| {
-                        let back_button = ThemedButton::new("← Back to Settings", theme)
-                            .responsive(responsive)
-                            .width(if responsive.is_mobile() { 200.0 } else { 180.0 });
+                    // Back button with unique ID using scope and push_id
+                    ui.scope(|ui| {
+                        ui.push_id(Id::new("input_unavailable_back_button"), |ui| {
+                            let back_button = ThemedButton::new("← Back to Settings", theme)
+                                .responsive(responsive)
+                                .width(if responsive.is_mobile() { 200.0 } else { 180.0 });
 
-                        if ui.add(back_button).clicked() {
-                            config_events.write(InputConfigurationEvent::Close);
-                        }
+                            if ui.add(back_button).clicked() {
+                                config_events.write(InputConfigurationEvent::Close);
+                            }
+                        });
                     });
-                });
 
-                ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
+                    ui.add_space(responsive.spacing(ResponsiveSpacing::Medium));
+                });
             });
-        });
+    }
 }
 
 fn render_input_configuration_content(
@@ -271,7 +270,7 @@ fn render_input_configuration_content(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     ui.vertical_centered(|ui| {
         let max_width = if responsive.is_mobile() {
@@ -469,7 +468,7 @@ fn render_player_configuration_grid(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     let panel_width = if responsive.is_mobile() {
         ui.available_width() * 0.95
@@ -548,7 +547,7 @@ fn render_player_panel(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     let current_device = assignment.get_device_for_player(player_id);
 
@@ -669,7 +668,7 @@ fn render_device_categories_for_player(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     let devices = available_devices.get_available_devices();
 
@@ -758,7 +757,7 @@ fn render_device_categories_for_player(
 /// System to cleanup input configuration
 pub fn cleanup_input_configuration(
     mut commands: Commands,
-    mut config_events: EventReader<InputConfigurationEvent>,
+    mut config_events: MessageReader<InputConfigurationEvent>,
     config_query: Query<Entity, With<ActiveInputConfiguration>>,
 ) {
     for event in config_events.read() {

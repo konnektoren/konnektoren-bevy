@@ -15,7 +15,7 @@ use bevy_egui::{
 use std::collections::HashMap;
 
 /// Events for component-based settings
-#[derive(Event)]
+#[derive(Message)]
 pub enum ComponentSettingsEvent {
     /// Settings screen dismissed
     Dismissed { entity: Entity },
@@ -109,7 +109,7 @@ pub fn render_component_settings_ui(
     responsive: Res<ResponsiveInfo>,
     mut config_query: Query<&mut ActiveComponentSettings>,
     settings_query: Query<(Entity, &Setting)>,
-    mut settings_events: EventWriter<ComponentSettingsEvent>,
+    mut settings_events: MessageWriter<ComponentSettingsEvent>,
     mut commands: Commands,
     input: Res<ButtonInput<KeyCode>>,
 ) {
@@ -117,30 +117,30 @@ pub fn render_component_settings_ui(
         return;
     }
 
-    let ctx = contexts.ctx_mut();
+    if let Ok(ctx) = contexts.ctx_mut() {
+        if let Ok(mut config) = config_query.single_mut() {
+            let should_dismiss = config.allow_dismissal && input.just_pressed(KeyCode::Escape);
+            if should_dismiss {
+                settings_events.write(ComponentSettingsEvent::Dismissed {
+                    entity: Entity::PLACEHOLDER,
+                });
+                return;
+            }
 
-    if let Ok(mut config) = config_query.single_mut() {
-        let should_dismiss = config.allow_dismissal && input.just_pressed(KeyCode::Escape);
-        if should_dismiss {
-            settings_events.write(ComponentSettingsEvent::Dismissed {
-                entity: Entity::PLACEHOLDER,
-            });
-            return;
+            egui::CentralPanel::default()
+                .frame(egui::Frame::NONE.fill(theme.base_100))
+                .show(ctx, |ui| {
+                    render_component_settings_content(
+                        ui,
+                        &mut config,
+                        &theme,
+                        &responsive,
+                        &settings_query,
+                        &mut settings_events,
+                        &mut commands,
+                    );
+                });
         }
-
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(theme.base_100))
-            .show(ctx, |ui| {
-                render_component_settings_content(
-                    ui,
-                    &mut config,
-                    &theme,
-                    &responsive,
-                    &settings_query,
-                    &mut settings_events,
-                    &mut commands,
-                );
-            });
     }
 }
 
@@ -151,7 +151,7 @@ fn render_component_settings_content(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     settings_query: &Query<(Entity, &Setting)>,
-    settings_events: &mut EventWriter<ComponentSettingsEvent>,
+    settings_events: &mut MessageWriter<ComponentSettingsEvent>,
     commands: &mut Commands,
 ) {
     ui.vertical_centered(|ui| {
@@ -564,7 +564,7 @@ fn update_component_setting_value(
 
 pub fn cleanup_component_settings(
     mut commands: Commands,
-    mut settings_events: EventReader<ComponentSettingsEvent>,
+    mut settings_events: MessageReader<ComponentSettingsEvent>,
     config_query: Query<Entity, With<ActiveComponentSettings>>,
 ) {
     for _event in settings_events.read() {

@@ -300,7 +300,7 @@ impl ScreenSettingsItem {
 }
 
 /// Events for settings screen interactions
-#[derive(Event)]
+#[derive(Message)]
 pub enum SettingsScreenEvent {
     /// A setting value changed
     ValueChanged {

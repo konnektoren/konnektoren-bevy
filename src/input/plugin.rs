@@ -17,7 +17,7 @@ impl Plugin for InputPlugin {
             .register_type::<InputDeviceAssignment>()
             .register_type::<InputSettings>()
             // Add events
-            .add_event::<InputEvent>()
+            .add_message::<InputEvent>()
             // Add core input systems
             .add_systems(
                 Update,

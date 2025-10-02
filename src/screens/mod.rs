@@ -19,9 +19,9 @@ impl Plugin for ScreensPlugin {
             .add_plugins(AboutPlugin)
             .add_plugins(CreditsPlugin)
             .add_plugins(SettingsScreenPlugin)
-            .add_event::<SplashDismissed>()
-            .add_event::<CreditsDismissed>()
-            .add_event::<AboutDismissed>();
+            .add_message::<SplashDismissed>()
+            .add_message::<CreditsDismissed>()
+            .add_message::<AboutDismissed>();
 
         info!("ScreensPlugin loaded with splash, about, and settings screen support");
     }

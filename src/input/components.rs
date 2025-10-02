@@ -220,7 +220,7 @@ impl Default for InputSettings {
 }
 
 /// Events for input system
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub enum InputEvent {
     /// Device assigned to player
     DeviceAssigned { player_id: u32, device: InputDevice },

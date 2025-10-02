@@ -16,7 +16,7 @@ pub struct SettingsPlugin;
 
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SettingChangedEvent>()
+        app.add_message::<SettingChangedEvent>()
             .add_systems(Update, update_settings_from_components);
     }
 }

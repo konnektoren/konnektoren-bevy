@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 use konnektoren_bevy::prelude::*;
 
 mod demo;
@@ -23,15 +23,13 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Konnektoren Bevy - Demo".into(),
-                        resolution: (800.0, 600.0).into(),
+                        resolution: (800, 600).into(),
                         ..default()
                     }),
                     ..default()
                 }),
         )
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: true,
-        })
+        .add_plugins(EguiPlugin::default())
         .add_plugins(KonnektorenThemePlugin)
         .add_plugins(UIPlugin)
         .add_plugins(ScreensPlugin)
@@ -45,6 +43,6 @@ fn main() {
                 handle_settings_events,
             ),
         )
-        .add_systems(bevy_egui::EguiContextPass, demo_ui)
+        .add_systems(EguiPrimaryContextPass, demo_ui)
         .run();
 }

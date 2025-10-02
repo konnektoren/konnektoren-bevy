@@ -255,7 +255,10 @@ mod tests {
     #[test]
     fn test_available_input_devices() {
         let devices = AvailableInputDevices {
-            gamepads: vec![Entity::from_raw(1), Entity::from_raw(2)],
+            gamepads: vec![
+                Entity::from_raw_u32(1).unwrap(),
+                Entity::from_raw_u32(2).unwrap(),
+            ],
             mouse: true,
             touch: false,
             keyboard: true,

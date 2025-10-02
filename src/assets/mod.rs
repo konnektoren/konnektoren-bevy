@@ -188,7 +188,7 @@ pub trait KonnektorenAssetLoader {
 impl KonnektorenAssetLoader for App {
     fn load_challenge(&mut self, id: &str, path: &str) -> Handle<ChallengeAsset> {
         let asset_server = self.world().resource::<AssetServer>();
-        let handle = asset_server.load(path);
+        let handle = asset_server.load(path.to_string());
 
         let mut registry = self.world_mut().resource_mut::<KonnektorenAssetRegistry>();
         registry.register_challenge(id.to_string(), handle.clone());
@@ -202,7 +202,7 @@ impl KonnektorenAssetLoader for App {
 
     fn load_level(&mut self, id: &str, path: &str) -> Handle<LevelAsset> {
         let asset_server = self.world().resource::<AssetServer>();
-        let handle = asset_server.load(path);
+        let handle = asset_server.load(path.to_string());
 
         let mut registry = self.world_mut().resource_mut::<KonnektorenAssetRegistry>();
         registry.register_level(id.to_string(), handle.clone());
