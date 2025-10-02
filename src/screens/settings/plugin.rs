@@ -6,8 +6,8 @@ pub struct SettingsScreenPlugin;
 
 impl Plugin for SettingsScreenPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SettingsScreenEvent>()
-            .add_event::<ComponentSettingsEvent>()
+        app.add_message::<SettingsScreenEvent>()
+            .add_message::<ComponentSettingsEvent>()
             .add_systems(
                 Update,
                 (

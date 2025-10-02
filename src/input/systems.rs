@@ -9,7 +9,7 @@ pub fn handle_keyboard_input(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut controller_query: Query<(&mut InputController, &PlayerInputMapping)>,
     settings: Res<InputSettings>,
-    mut input_events: EventWriter<InputEvent>,
+    mut input_events: MessageWriter<InputEvent>,
 ) {
     for (mut controller, mapping) in &mut controller_query {
         if !controller.enabled || !mapping.enabled {
@@ -98,7 +98,7 @@ pub fn handle_gamepad_input(
     gamepads: Query<(Entity, &Gamepad)>,
     mut controller_query: Query<(&mut InputController, &PlayerInputMapping)>,
     settings: Res<InputSettings>,
-    mut input_events: EventWriter<InputEvent>,
+    mut input_events: MessageWriter<InputEvent>,
 ) {
     for (mut controller, mapping) in &mut controller_query {
         if !controller.enabled || !mapping.enabled {

@@ -16,7 +16,7 @@ pub struct CreditsPlugin;
 
 impl Plugin for CreditsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<CreditsDismissed>().add_systems(
+        app.add_message::<CreditsDismissed>().add_systems(
             Update,
             (
                 check_credits_config,
@@ -260,7 +260,7 @@ impl Default for CreditsNavigationState {
 }
 
 /// Event sent when credits screen should be dismissed
-#[derive(Event)]
+#[derive(Message)]
 pub struct CreditsDismissed {
     pub entity: Entity,
 }
@@ -303,7 +303,7 @@ fn render_credits_ui(
     theme: Res<KonnektorenTheme>,
     responsive: Res<ResponsiveInfo>,
     mut query: Query<(Entity, &mut ActiveCredits)>,
-    mut dismiss_events: EventWriter<CreditsDismissed>,
+    mut dismiss_events: MessageWriter<CreditsDismissed>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if query.is_empty() {
@@ -352,7 +352,7 @@ fn render_credits_content(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    dismiss_events: &mut EventWriter<CreditsDismissed>,
+    dismiss_events: &mut MessageWriter<CreditsDismissed>,
 ) {
     ui.vertical_centered(|ui| {
         let max_width = if responsive.is_mobile() {
@@ -602,7 +602,7 @@ fn render_credits_dismiss_button(
     responsive: &ResponsiveInfo,
     _nav_state: &CreditsNavigationState,
     entity: Entity,
-    dismiss_events: &mut EventWriter<CreditsDismissed>,
+    dismiss_events: &mut MessageWriter<CreditsDismissed>,
 ) {
     ui.vertical_centered(|ui| {
         let back_button = ThemedButton::new(&config.dismiss_button_text, theme)
@@ -618,7 +618,7 @@ fn render_credits_dismiss_button(
 /// System to handle credits completion
 fn handle_credits_completion(
     mut commands: Commands,
-    mut dismiss_events: EventReader<CreditsDismissed>,
+    mut dismiss_events: MessageReader<CreditsDismissed>,
 ) {
     for event in dismiss_events.read() {
         info!("Dismissing credits screen for entity {:?}", event.entity);

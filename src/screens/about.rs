@@ -17,7 +17,7 @@ pub struct AboutPlugin;
 
 impl Plugin for AboutPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<AboutDismissed>().add_systems(
+        app.add_message::<AboutDismissed>().add_systems(
             Update,
             (check_about_config, handle_about_completion, render_about_ui),
         );
@@ -262,7 +262,7 @@ impl Default for NavigationState {
 }
 
 /// Event sent when about screen should be dismissed
-#[derive(Event)]
+#[derive(Message)]
 pub struct AboutDismissed {
     pub entity: Entity,
 }
@@ -305,7 +305,7 @@ fn render_about_ui(
     theme: Res<KonnektorenTheme>,
     responsive: Res<ResponsiveInfo>,
     mut query: Query<(Entity, &mut ActiveAbout)>,
-    mut dismiss_events: EventWriter<AboutDismissed>,
+    mut dismiss_events: MessageWriter<AboutDismissed>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if query.is_empty() {
@@ -354,7 +354,7 @@ fn render_about_content(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    dismiss_events: &mut EventWriter<AboutDismissed>,
+    dismiss_events: &mut MessageWriter<AboutDismissed>,
 ) {
     ui.vertical_centered(|ui| {
         let max_width = if responsive.is_mobile() {
@@ -732,7 +732,7 @@ fn render_dismiss_button(
     responsive: &ResponsiveInfo,
     nav_state: &NavigationState,
     entity: Entity,
-    dismiss_events: &mut EventWriter<AboutDismissed>,
+    dismiss_events: &mut MessageWriter<AboutDismissed>,
 ) {
     ui.vertical_centered(|ui| {
         let _is_focused = nav_state.enabled && nav_state.current_index == 0;
@@ -750,7 +750,7 @@ fn render_dismiss_button(
 /// System to handle about completion
 fn handle_about_completion(
     mut commands: Commands,
-    mut dismiss_events: EventReader<AboutDismissed>,
+    mut dismiss_events: MessageReader<AboutDismissed>,
 ) {
     for event in dismiss_events.read() {
         info!("Dismissing about screen for entity {:?}", event.entity);

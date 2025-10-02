@@ -20,7 +20,7 @@ pub struct InputConfigurationPlugin;
 
 impl Plugin for InputConfigurationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<InputConfigurationEvent>().add_systems(
+        app.add_message::<InputConfigurationEvent>().add_systems(
             Update,
             (
                 handle_input_configuration_events,
@@ -32,7 +32,7 @@ impl Plugin for InputConfigurationPlugin {
 }
 
 /// Events for input configuration
-#[derive(Event)]
+#[derive(Message)]
 pub enum InputConfigurationEvent {
     /// Open input configuration
     Open,
@@ -53,9 +53,9 @@ pub struct ActiveInputConfiguration {
 
 /// System to handle input configuration events
 pub fn handle_input_configuration_events(
-    mut config_events: EventReader<InputConfigurationEvent>,
+    mut config_events: MessageReader<InputConfigurationEvent>,
     assignment: Option<ResMut<InputDeviceAssignment>>,
-    mut input_events: EventWriter<InputEvent>,
+    mut input_events: MessageWriter<InputEvent>,
     available_devices: Option<Res<AvailableInputDevices>>,
 ) {
     // Early return if input resources aren't available
@@ -133,7 +133,7 @@ pub fn render_input_configuration_ui(
     query: Query<(Entity, &ActiveInputConfiguration)>,
     assignment: Option<Res<InputDeviceAssignment>>,
     available_devices: Option<Res<AvailableInputDevices>>,
-    mut config_events: EventWriter<InputConfigurationEvent>,
+    mut config_events: MessageWriter<InputConfigurationEvent>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if query.is_empty() {
@@ -188,7 +188,7 @@ fn render_input_unavailable_ui(
     contexts: &mut EguiContexts,
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
     input: &Res<ButtonInput<KeyCode>>,
 ) {
     // Handle escape to close
@@ -270,7 +270,7 @@ fn render_input_configuration_content(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     ui.vertical_centered(|ui| {
         let max_width = if responsive.is_mobile() {
@@ -468,7 +468,7 @@ fn render_player_configuration_grid(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     let panel_width = if responsive.is_mobile() {
         ui.available_width() * 0.95
@@ -547,7 +547,7 @@ fn render_player_panel(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     let current_device = assignment.get_device_for_player(player_id);
 
@@ -668,7 +668,7 @@ fn render_device_categories_for_player(
     responsive: &ResponsiveInfo,
     assignment: &InputDeviceAssignment,
     available_devices: &AvailableInputDevices,
-    config_events: &mut EventWriter<InputConfigurationEvent>,
+    config_events: &mut MessageWriter<InputConfigurationEvent>,
 ) {
     let devices = available_devices.get_available_devices();
 
@@ -757,7 +757,7 @@ fn render_device_categories_for_player(
 /// System to cleanup input configuration
 pub fn cleanup_input_configuration(
     mut commands: Commands,
-    mut config_events: EventReader<InputConfigurationEvent>,
+    mut config_events: MessageReader<InputConfigurationEvent>,
     config_query: Query<Entity, With<ActiveInputConfiguration>>,
 ) {
     for event in config_events.read() {

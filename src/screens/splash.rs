@@ -14,7 +14,7 @@ pub struct SplashPlugin;
 
 impl Plugin for SplashPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<SplashDismissed>().add_systems(
+        app.add_message::<SplashDismissed>().add_systems(
             Update,
             (
                 check_splash_config,
@@ -218,7 +218,7 @@ pub struct ActiveSplash {
 }
 
 /// Event sent when splash screen should be dismissed
-#[derive(Event)]
+#[derive(Message)]
 pub struct SplashDismissed {
     pub entity: Entity,
 }
@@ -282,8 +282,9 @@ fn load_splash_images(
                 if let Some(_image) = images.get(image_handle) {
                     info!("Image loaded successfully: {}", path);
 
-                    // Convert to egui texture
-                    let texture_id = egui_user_textures.add_image(image_handle.clone());
+                    // Fix: Use the correct API for adding textures
+                    let texture_id = egui_user_textures
+                        .add_image(bevy_egui::EguiTextureHandle::Strong(image_handle.clone()));
 
                     let mut textures = HashMap::new();
                     textures.insert(path.clone(), texture_id);
@@ -305,7 +306,7 @@ fn load_splash_images(
 fn update_splash_timer(
     time: Res<Time>,
     mut query: Query<(Entity, &mut ActiveSplash)>,
-    mut dismiss_events: EventWriter<SplashDismissed>,
+    mut dismiss_events: MessageWriter<SplashDismissed>,
 ) {
     for (entity, mut splash) in query.iter_mut() {
         if splash.config.duration > 0.0 {
@@ -325,7 +326,7 @@ fn render_splash_ui(
     theme: Res<KonnektorenTheme>,
     responsive: Res<ResponsiveInfo>,
     query: Query<(Entity, &ActiveSplash, Option<&LoadedTextures>)>,
-    mut dismiss_events: EventWriter<SplashDismissed>,
+    mut dismiss_events: MessageWriter<SplashDismissed>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     // Early return if no active splash screens
@@ -377,7 +378,7 @@ fn render_splash_content(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    dismiss_events: &mut EventWriter<SplashDismissed>,
+    dismiss_events: &mut MessageWriter<SplashDismissed>,
     loaded_textures: Option<&LoadedTextures>,
 ) {
     ui.vertical_centered(|ui| {
@@ -602,7 +603,7 @@ fn render_image_loading(
 /// System to handle splash completion
 fn handle_splash_completion(
     mut commands: Commands,
-    mut dismiss_events: EventReader<SplashDismissed>,
+    mut dismiss_events: MessageReader<SplashDismissed>,
 ) {
     for event in dismiss_events.read() {
         info!("Dismissing splash screen for entity {:?}", event.entity);

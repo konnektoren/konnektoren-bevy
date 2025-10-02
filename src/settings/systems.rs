@@ -5,7 +5,7 @@ use bevy::prelude::*;
 pub fn update_settings_from_components(
     mut changed_settings: Query<(Entity, &mut Setting, Option<&SettingChanged>), Changed<Setting>>,
     mut commands: Commands,
-    mut setting_events: EventWriter<SettingChangedEvent>,
+    mut setting_events: MessageWriter<SettingChangedEvent>,
 ) {
     for (entity, setting, changed_marker) in changed_settings.iter_mut() {
         if let Some(changed) = changed_marker {

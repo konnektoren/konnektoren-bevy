@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 /// Event sent when a setting value changes
-#[derive(Event, Debug, Clone)]
+#[derive(Message, Debug, Clone)]
 pub struct SettingChangedEvent {
     pub setting_id: String,
     pub old_value: SettingValue,

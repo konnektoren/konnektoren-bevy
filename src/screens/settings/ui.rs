@@ -92,7 +92,7 @@ pub fn check_settings_screen_config(
 
 /// System to handle settings value changes and update the active screen
 pub fn update_settings_screen_values(
-    mut settings_events: EventReader<SettingsScreenEvent>,
+    mut settings_events: MessageReader<SettingsScreenEvent>,
     mut active_settings_query: Query<&mut ActiveSettingsScreen>,
 ) {
     for event in settings_events.read() {
@@ -139,7 +139,7 @@ pub fn render_settings_screen_ui(
     theme: Res<KonnektorenTheme>,
     responsive: Res<ResponsiveInfo>,
     mut query: Query<(Entity, &mut ActiveSettingsScreen)>,
-    mut settings_events: EventWriter<SettingsScreenEvent>,
+    mut settings_events: MessageWriter<SettingsScreenEvent>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if query.is_empty() {
@@ -189,7 +189,7 @@ fn render_settings_content(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     ui.vertical_centered(|ui| {
         let max_width = if responsive.is_mobile() {
@@ -263,7 +263,7 @@ fn render_mobile_settings_layout(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     let section_spacing = responsive.spacing(ResponsiveSpacing::Large);
 
@@ -297,7 +297,7 @@ fn render_desktop_settings_layout(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     for section in &config.sections {
         // Section header
@@ -347,7 +347,7 @@ fn render_mobile_setting_item(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     ui.vertical_centered(|ui| {
         ResponsiveText::new(
@@ -372,7 +372,7 @@ fn render_desktop_setting_control(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     render_setting_control(ui, setting, theme, responsive, entity, settings_events);
 }
@@ -384,7 +384,7 @@ fn render_setting_control(
     theme: &KonnektorenTheme,
     responsive: &ResponsiveInfo,
     entity: Entity,
-    settings_events: &mut EventWriter<SettingsScreenEvent>,
+    settings_events: &mut MessageWriter<SettingsScreenEvent>,
 ) {
     #[cfg(feature = "settings")]
     {
@@ -672,8 +672,8 @@ fn render_setting_control(
 /// System to handle settings events
 pub fn handle_settings_screen_events(
     mut commands: Commands,
-    mut settings_events: EventReader<SettingsScreenEvent>,
-    mut input_config_events: EventWriter<InputConfigurationEvent>,
+    mut settings_events: MessageReader<SettingsScreenEvent>,
+    mut input_config_events: MessageWriter<InputConfigurationEvent>,
 ) {
     for event in settings_events.read() {
         match event {
