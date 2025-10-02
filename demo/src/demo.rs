@@ -14,6 +14,8 @@ pub enum DemoType {
 }
 
 pub fn setup_demo(mut commands: Commands) {
+    // Initialize Camera
+    commands.spawn(Camera2d);
     // Initialize demo state
     commands.spawn(DemoState {
         current_demo: DemoType::Splash,

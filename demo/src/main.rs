@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_egui::EguiPlugin;
+use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 use konnektoren_bevy::prelude::*;
 
 mod demo;
@@ -41,8 +41,8 @@ fn main() {
                 handle_splash_dismissed,
                 handle_about_dismissed,
                 handle_settings_events,
-                demo_ui,
             ),
         )
+        .add_systems(EguiPrimaryContextPass, demo_ui)
         .run();
 }
