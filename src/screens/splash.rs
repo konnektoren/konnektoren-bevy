@@ -5,7 +5,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_egui::{
     egui::{self, StrokeKind, TextureId},
-    EguiContexts, EguiUserTextures,
+    EguiContexts, EguiPrimaryContextPass, EguiUserTextures,
 };
 use std::collections::HashMap;
 
@@ -14,16 +14,17 @@ pub struct SplashPlugin;
 
 impl Plugin for SplashPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<SplashDismissed>().add_systems(
-            Update,
-            (
-                check_splash_config,
-                update_splash_timer,
-                handle_splash_completion,
-                load_splash_images,
-                render_splash_ui,
-            ),
-        );
+        app.add_message::<SplashDismissed>()
+            .add_systems(
+                Update,
+                (
+                    check_splash_config,
+                    update_splash_timer,
+                    handle_splash_completion,
+                    load_splash_images,
+                ),
+            )
+            .add_systems(EguiPrimaryContextPass, render_splash_ui);
     }
 }
 

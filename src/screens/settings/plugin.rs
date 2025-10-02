@@ -1,5 +1,6 @@
 use super::*;
 use bevy::prelude::*;
+use bevy_egui::EguiPrimaryContextPass;
 
 /// Plugin for reusable settings screen functionality
 pub struct SettingsScreenPlugin;
@@ -15,9 +16,9 @@ impl Plugin for SettingsScreenPlugin {
                     handle_settings_screen_events,
                     update_settings_screen_values,
                     cleanup_component_settings,
-                    render_settings_screen_ui, // Move to Update
                 ),
             )
+            .add_systems(EguiPrimaryContextPass, render_settings_screen_ui)
             // Add input configuration plugin
             .add_plugins(InputConfigurationPlugin);
 
@@ -26,12 +27,9 @@ impl Plugin for SettingsScreenPlugin {
         {
             app.add_systems(
                 Update,
-                (
-                    check_component_settings,
-                    process_pending_setting_updates,
-                    render_component_settings_ui, // Move to Update
-                ),
-            );
+                (check_component_settings, process_pending_setting_updates),
+            )
+            .add_systems(EguiPrimaryContextPass, render_component_settings_ui);
         }
     }
 }

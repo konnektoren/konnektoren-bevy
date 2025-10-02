@@ -8,7 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_egui::{
     egui::{self, Widget},
-    EguiContexts,
+    EguiContexts, EguiPrimaryContextPass,
 };
 
 /// Plugin for reusable credits screen functionality
@@ -16,14 +16,9 @@ pub struct CreditsPlugin;
 
 impl Plugin for CreditsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<CreditsDismissed>().add_systems(
-            Update,
-            (
-                check_credits_config,
-                handle_credits_completion,
-                render_credits_ui,
-            ),
-        );
+        app.add_message::<CreditsDismissed>()
+            .add_systems(Update, (check_credits_config, handle_credits_completion))
+            .add_systems(EguiPrimaryContextPass, render_credits_ui);
     }
 }
 

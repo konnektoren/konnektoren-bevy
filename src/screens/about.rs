@@ -8,7 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_egui::{
     egui::{self, Color32, Widget},
-    EguiContexts,
+    EguiContexts, EguiPrimaryContextPass,
 };
 use chrono::Utc;
 
@@ -17,10 +17,9 @@ pub struct AboutPlugin;
 
 impl Plugin for AboutPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<AboutDismissed>().add_systems(
-            Update,
-            (check_about_config, handle_about_completion, render_about_ui),
-        );
+        app.add_message::<AboutDismissed>()
+            .add_systems(Update, (check_about_config, handle_about_completion))
+            .add_systems(EguiPrimaryContextPass, render_about_ui);
     }
 }
 
